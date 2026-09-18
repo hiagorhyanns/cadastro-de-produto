@@ -1,5 +1,6 @@
 {
-  "name": "E-com AI Studio",
-  "description": "IA especializada em criação de imagens de produto para e-commerce, com foco em fidelidade visual, SEO e conversão.",
-  "requestFramePermissions": []
+  "name": "Cadastro de produto",
+  "description": "IA especializada em e-commerce: geração de imagens realistas, formatação estratégica de descrições e otimização avançada de SEO para títulos e palavras-chave.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

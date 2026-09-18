@@ -1,0 +1,214 @@
+{
+  "entities": {
+    "Prompt": {
+      "title": "Prompt",
+      "description": "Stores optimized prompts with comparison images.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "nome": { "type": "string" },
+        "tipo": { "type": "string" },
+        "conteudo": { "type": "string" },
+        "imagem_antes": { "type": "string", "format": "uri" },
+        "imagem_depois": { "type": "string", "format": "uri" },
+        "imagem_link": { "type": "string", "format": "uri" },
+        "criado_em": { "type": "string", "format": "date-time" }
+      },
+      "required": ["nome", "conteudo", "criado_em"]
+    },
+    "Tool": {
+      "title": "Tool",
+      "description": "Stores links and descriptions of useful tools.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "url": { "type": "string", "format": "uri" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "icon": { "type": "string", "format": "uri" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["name", "url", "createdAt"]
+    },
+    "Upload": {
+      "title": "Upload",
+      "description": "Metadata for uploaded files.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "url": { "type": "string", "format": "uri" },
+        "name": { "type": "string" },
+        "type": { "type": "string" },
+        "size": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["url", "name", "createdAt"]
+    },
+    "SEOItem": {
+      "title": "SEOItem",
+      "description": "Stores SEO items with text, type and status.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "text": { "type": "string" },
+        "type": { "type": "string" },
+        "status": { "type": "string", "enum": ["feito", "progresso", "validar"] },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["text", "type", "status", "createdAt"]
+    },
+    "TrainingStep": {
+      "title": "TrainingStep",
+      "description": "Step-by-step product registration training.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "name": { "type": "string" },
+        "explanation": { "type": "string" },
+        "position": { "type": "number" },
+        "createdAt": { "type": "number" },
+        "improvements": { 
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+               "version": { "type": "string" },
+               "detail": { "type": "string" }
+            }
+          }
+        }
+      },
+      "required": ["name", "explanation", "position", "createdAt"]
+    },
+    "Access": {
+      "title": "Access",
+      "description": "Access control for new employees.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "toolName": { "type": "string" },
+        "hasAccess": { "type": "boolean" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["toolName", "hasAccess", "createdAt"]
+    },
+    "SystemInfo": {
+      "title": "SystemInfo",
+      "description": "Information about ERP, ANY, FTP systems.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "explanation": { "type": "string" },
+        "content": { "type": "string" },
+        "lastUpdated": { "type": "number" }
+      },
+      "required": ["title", "explanation", "lastUpdated"]
+    },
+    "MonitorRecord": {
+      "title": "MonitorRecord",
+      "description": "Daily records of activated products.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "quantity": { "type": "number" },
+        "note": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["date", "quantity", "createdAt"]
+    },
+    "ProductivityImprovement": {
+      "title": "ProductivityImprovement",
+      "description": "Improvements for productivity in product registration.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "note": { "type": "string" },
+        "icon": { "type": "string" },
+        "completed": { "type": "boolean" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["title", "description", "createdAt"]
+    },
+    "Ebook": {
+      "title": "Ebook",
+      "description": "Stores user ebooks and PDFs for training and consult.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "coverUrl": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "downloadUrl": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["title", "description", "downloadUrl", "createdAt"]
+    },
+    "ProductRule": {
+      "title": "ProductRule",
+      "description": "Information required and forbidden per product type or globally.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "name": { "type": "string" },
+        "requiredInfo": { "type": "string" },
+        "forbiddenInfo": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["name", "requiredInfo", "forbiddenInfo", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/prompts/{promptId}": {
+      "schema": "Prompt",
+      "description": "Collection of saved prompts."
+    },
+    "/tools/{toolId}": {
+      "schema": "Tool",
+      "description": "Collection of saved tools."
+    },
+    "/uploads/{uploadId}": {
+      "schema": "Upload",
+      "description": "Collection of uploaded files metadata."
+    },
+    "/seo_items/{itemId}": {
+      "schema": "SEOItem",
+      "description": "Collection of saved SEO items."
+    },
+    "/training_steps/{stepId}": {
+      "schema": "TrainingStep",
+      "description": "Collection of training steps."
+    },
+    "/accesses/{accessId}": {
+      "schema": "Access",
+      "description": "Collection of access controls."
+    },
+    "/systems_info/{systemId}": {
+      "schema": "SystemInfo",
+      "description": "Information about external systems."
+    },
+    "/monitor_records/{recordId}": {
+      "schema": "MonitorRecord",
+      "description": "Collection of daily monitoring records."
+    },
+    "/productivity_improvements/{improvementId}": {
+      "schema": "ProductivityImprovement",
+      "description": "Collection of productivity improvements."
+    },
+    "/ebooks/{ebookId}": {
+      "schema": "Ebook",
+      "description": "Collection of ebooks."
+    },
+    "/product_rules/{ruleId}": {
+      "schema": "ProductRule",
+      "description": "Collection of product rule definitions."
+    }
+  }
+}

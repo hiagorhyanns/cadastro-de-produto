@@ -1,0 +1,172 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Prompt Validation
+    function isValidPrompt(data) {
+      return data.nome is string && data.nome.size() > 0 && data.nome.size() <= 200 &&
+             data.conteudo is string && data.conteudo.size() > 0 && data.conteudo.size() <= 10000 &&
+             (!('tipo' in data) || data.tipo == null || (data.tipo is string && data.tipo.size() <= 100)) &&
+             (!('imagem_antes' in data) || data.imagem_antes == null || (data.imagem_antes is string && data.imagem_antes.size() <= 2000000)) &&
+             (!('imagem_depois' in data) || data.imagem_depois == null || (data.imagem_depois is string && data.imagem_depois.size() <= 2000000)) &&
+             (!('imagem_link' in data) || data.imagem_link == null || (data.imagem_link is string && data.imagem_link.size() <= 2000000)) &&
+             data.criado_em is string;
+    }
+
+    // Tool Validation
+    function isValidTool(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 200 &&
+             data.url is string && data.url.size() > 0 && data.url.size() <= 2000 &&
+             (!('description' in data) || data.description == null || (data.description is string && data.description.size() <= 5000)) &&
+             (!('category' in data) || data.category == null || (data.category is string && data.category.size() <= 100)) &&
+             (!('icon' in data) || data.icon == null || (data.icon is string && data.icon.size() <= 2000000)) &&
+             data.createdAt is number;
+    }
+
+    // SEO Item Validation
+    function isValidSEOItem(data) {
+      return data.text is string && data.text.size() > 0 && data.text.size() <= 10000 &&
+             data.type is string && data.type.size() > 0 && data.type.size() <= 200 &&
+             data.status in ['feito', 'progresso', 'validar'] &&
+             data.createdAt is number;
+    }
+
+    // Training Step Validation
+    function isValidTrainingStep(data) {
+      return data.name is string && data.name.size() > 0 && data.name.size() <= 200 &&
+             data.explanation is string && data.explanation.size() > 0 && data.explanation.size() <= 20000 &&
+             data.position is number &&
+             data.createdAt is number &&
+             (!('imageUrl' in data) || data.imageUrl == null || (data.imageUrl is string && data.imageUrl.size() <= 2000)) &&
+             (!('improvements' in data) || data.improvements == null || data.improvements is list);
+    }
+
+    // Access Validation
+    function isValidAccess(data) {
+      return data.toolName is string && data.toolName.size() > 0 && data.toolName.size() <= 200 &&
+             data.hasAccess is bool &&
+             data.createdAt is number;
+    }
+
+    // System Info Validation
+    function isValidSystemInfo(data) {
+      return data.title is string && data.title.size() > 0 && data.title.size() <= 200 &&
+             data.explanation is string && data.explanation.size() > 0 && data.explanation.size() <= 10000 &&
+             (!('content' in data) || data.content == null || (data.content is string && data.content.size() <= 50000)) &&
+             data.lastUpdated is number;
+    }
+
+    // Monitor Record Validation
+    function isValidMonitorRecord(data) {
+      return data.date is string &&
+             data.quantity is number &&
+             (!('note' in data) || data.note is string) &&
+             data.createdAt is number;
+    }
+
+    // Productivity Improvement Validation
+    function isValidProductivityImprovement(data) {
+      return data.title is string && data.title.size() > 0 &&
+             data.description is string && data.description.size() > 0 &&
+             (!('note' in data) || data.note is string) &&
+             (!('icon' in data) || data.icon is string) &&
+             (!('completed' in data) || data.completed is bool) &&
+             data.createdAt is number;
+    }
+
+    // Ebook Validation
+    function isValidEbook(data) {
+      return data.title is string && data.title.size() > 0 &&
+             data.description is string && data.description.size() > 0 &&
+             data.downloadUrl is string && data.downloadUrl.size() > 0 &&
+             (!('coverUrl' in data) || data.coverUrl is string) &&
+             (!('tags' in data) || data.tags is list) &&
+             data.createdAt is number;
+    }
+
+    // Product Rule Validation
+    function isValidProductRule(data) {
+      return data.name is string && data.name.size() > 0 &&
+             data.requiredInfo is string &&
+             data.forbiddenInfo is string &&
+             (!('imageUrl' in data) || data.imageUrl is string) &&
+             data.createdAt is number;
+    }
+
+    // Prompts Collection
+    match /prompts/{promptId} {
+      allow read, write: if true;
+    }
+
+    // Tools Collection
+    match /tools/{toolId} {
+      allow read, write: if true;
+    }
+
+    // Uploads Collection
+    match /uploads/{uploadId} {
+      allow read, write: if true;
+    }
+
+    // SEO Items Collection
+    match /seo_items/{itemId} {
+      allow read, write: if true;
+    }
+
+    // Training Steps Collection
+    match /training_steps/{stepId} {
+      allow read, write: if true;
+    }
+
+    // Accesses Collection
+    match /accesses/{accessId} {
+      allow read, write: if true;
+    }
+
+    // Systems Info Collection
+    match /systems_info/{systemId} {
+      allow read, write: if true;
+    }
+
+    // Monitor Records Collection
+    match /monitor_records/{recordId} {
+      allow read, write: if true;
+    }
+
+    // Productivity Improvements Collection
+    match /productivity_improvements/{improvementId} {
+      allow read, write: if true;
+    }
+
+    // Ebooks Collection
+    match /ebooks/{ebookId} {
+      allow read, write: if true;
+    }
+
+    // Product Rules Collection
+    match /product_rules/{ruleId} {
+      allow read, write: if true;
+    }
+  }
+}

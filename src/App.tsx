@@ -1,6 +1,5 @@
-import * as React from "react"
-import { useState, useRef } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import React, { useState, useEffect, type ChangeEvent, type FormEvent } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   Upload, 
   Ruler, 
@@ -18,7 +17,18 @@ import {
   Image as ImageIcon,
   ShoppingBag,
   ArrowRight,
-  PlusCircle
+  PlusCircle,
+  Eraser,
+  MessageSquare,
+  Users,
+  Target,
+  Lightbulb,
+  X,
+  Monitor,
+  MousePointer2,
+  Bookmark,
+  Wrench,
+  Video
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,405 +40,626 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { generateProductContent, type ProductData, type GenerationResult } from "@/src/lib/gemini";
+import { rewriteDescription, generateSEOTitle, type RewriteResult, type SEOResult } from "./lib/gemini";
+import { resizeAndCompressImage } from "./lib/imageCompressor";
+import { useImageGeneration } from "./contexts/ImageGenerationContext";
+import { SEOTab } from "./components/SEOTab";
+import { SEOManagerTab } from "./components/SEOManagerTab";
+import { DescriptionTab } from "./components/DescriptionTab";
+import { ImageTab } from "./components/ImageTab";
+import { PromptSaverTab } from "./components/PromptSaverTab";
+import { ToolsTab } from "./components/ToolsTab";
+import { VideoTab } from "./components/VideoTab";
+import { TreinamentoTab } from "./components/TreinamentoTab";
+
+const FORBIDDEN_WORDS = [
+  "vitrine", "pitão", "paralelo", "profissional", "garantido", "garantem", "couro", "q/d", "wind", "mel", "imbuia", 
+  "linguiça", "bbs", "bbs 2", "vaporizador", "esferas", "window", "estrado", "original", "grátis", "100% grátis", 
+  "gratuito", "gratuitamente", "garantia", "satisfação garantida", "garantia da loja", "imbatível", "novo", "usado", 
+  "entrega rápida", "entrega em x dias", "clique aqui", "veja mais", "acesse nosso site", "whatsapp", "atendimento personalizado", 
+  "link na bio", "link externo", "homologado por", "compatível com marca concorrente", "tipo marca concorrente", 
+  "desconto", "frete grátis", "promoção", "oferta", "melhor do mercado", "top de linha", "mais vendido", 
+  "campeão de vendas", "imperdível", "exclusivo", "aceitamos troca", "sem juros", "melhor preço", "super promoção", 
+  "testado e aprovado", "produto líder", "aprovado por especialistas", "produto exclusivo", "de fábrica", "direto da fábrica",
+  "frete"
+];
 
 export default function App() {
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<GenerationResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [preview, setPreview] = useState<string | null>(null);
-  const [formData, setFormData] = useState({
+  const [activeTab, setActiveTab] = React.useState("seo");
+  
+  // Image Generation State from Context
+  const { 
+    loading: imageLoading, 
+    result: imageResult, 
+    error: imageError, 
+    preview, 
+    setPreview, 
+    filename,
+    setFilename,
+    formData: imageFormData, 
+    setFormData: setImageFormData, 
+    startGeneration,
+    clearResult: clearImageResult,
+    quotaError,
+    setQuotaError
+  } = useImageGeneration();
+
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  
+  // Menu 2 States
+  const [originalDesc, setOriginalDesc] = React.useState("");
+  const [rewriteLoading, setRewriteLoading] = React.useState(false);
+  const [rewriteResult, setRewriteResult] = React.useState<RewriteResult | null>(null);
+  const [foundWords, setFoundWords] = React.useState<string[]>([]);
+  const [wordCounts, setWordCounts] = React.useState<{ [key: string]: number }>({});
+  const [copyAlert, setCopyAlert] = React.useState(false);
+  const [typeDescAlert, setTypeDescAlert] = React.useState(false);
+  const [showForbiddenAlert, setShowForbiddenAlert] = React.useState(false);
+  const [selectedImage, setSelectedImage] = React.useState<{url: string, id: number} | null>(null);
+  const [formatarMedidas, setFormatarMedidas] = React.useState({
     altura: "",
     largura: "",
     profundidade: "",
-    peso: "",
-    descricao: ""
+    peso: ""
   });
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  // Menu 3 (SEO Generator) States
+  const [seoFormData, setSeoFormData] = React.useState({
+    name: "",
+    model: "",
+    voltage: "",
+    brand: "",
+    differentials: "",
+    currentTitle: ""
+  });
+  const [seoLoading, setSeoLoading] = React.useState(false);
+  const [seoResult, setSeoResult] = React.useState<SEOResult | null>(null);
+  const [seoCopyAlert, setSeoCopyAlert] = React.useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!preview) {
-      setError("Por favor, envie uma imagem do produto.");
+  const [filenameCopyAlert, setFilenameCopyAlert] = React.useState<number | null>(null);
+  const [uploadFilenameCopyAlert, setUploadFilenameCopyAlert] = React.useState(false);
+
+  const handleDownload = React.useCallback((url: string, filename: string) => {
+    // Ensure filename always uses .jpg as requested
+    const jpgFilename = filename.replace(/\.[^/.]+$/, "") + ".jpg";
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = jpgFilename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }, []);
+
+  React.useEffect(() => {
+    if (!originalDesc.trim()) {
+      setFoundWords([]);
+      setWordCounts({});
+      setShowForbiddenAlert(false);
       return;
     }
 
-    setLoading(true);
-    setError(null);
-    try {
-      const data: ProductData = {
-        image: preview,
-        mimeType: preview.split(";")[0].split(":")[1],
-        ...formData
-      };
-      const res = await generateProductContent(data);
-      setResult(res);
-    } catch (err) {
-      console.error(err);
-      setError("Ocorreu um erro ao gerar o conteúdo. Verifique sua conexão e tente novamente.");
-    } finally {
-      setLoading(false);
+    const counts: { [key: string]: number } = {};
+    const found: string[] = [];
+    
+    // Normalize text: remove accents for matching if needed, or just be careful
+    // For now, let's just make it case insensitive and handles some common variations
+    const normalizedText = originalDesc.toLowerCase();
+
+    FORBIDDEN_WORDS.forEach(word => {
+      // Create a regex that is a bit more flexible but still word-boundary based
+      // Escaping for regex and handling slashes
+      const escapedWord = word.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\//g, '\\/');
+      const regex = new RegExp(`\\b${escapedWord}\\b`, 'gi');
+      const matches = normalizedText.match(regex);
+      
+      if (matches) {
+        counts[word] = matches.length;
+        found.push(word);
+      }
+    });
+
+    setFoundWords(found);
+    setWordCounts(counts);
+    
+    // Auto-show alert if words found for the first time or if already showing
+    if (found.length > 0) {
+      setShowForbiddenAlert(true);
+    } else {
+      setShowForbiddenAlert(false);
     }
-  };
+  }, [originalDesc]);
+
+  const handleFileChange = React.useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Remove a extensão do nome do arquivo (ex: foto.jpg -> foto)
+      const nameWithoutExtension = file.name.replace(/\.[^/.]+$/, "");
+      setFilename(nameWithoutExtension);
+      resizeAndCompressImage(file)
+        .then((compressedBase64) => {
+          setPreview(compressedBase64);
+        })
+        .catch((err) => {
+          console.error("Erro ao comprimir imagem:", err);
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setPreview(reader.result as string);
+          };
+          reader.readAsDataURL(file);
+        });
+    }
+  }, [setFilename, setPreview]);
+
+  const handleSubmit = React.useCallback(async (
+    e: FormEvent, 
+    mode: 'principal' | 'ambientada' | 'beneficios' | 'publicitaria' | 'medidas' | 'outros' | 'componentes' | 'cor' = 'principal',
+    extra?: { imageTecnico?: string | null; mimeTypeTecnico?: string | null; detalhesTecnicos?: string }
+  ) => {
+    e.preventDefault();
+    if (imageResult) {
+      clearImageResult();
+    }
+    await startGeneration(mode, extra);
+  }, [imageResult, clearImageResult, startGeneration]);
+
+  const handleRewrite = React.useCallback(async () => {
+    if (!originalDesc.trim()) return;
+    if (/\bfrete\b/i.test(originalDesc)) {
+      alert("A palavra 'Frete' é proibida na Via Varejo. Geração bloqueada até que o termo seja removido.");
+      return;
+    }
+    setRewriteLoading(true);
+    setShowForbiddenAlert(false);
+    try {
+      const res = await rewriteDescription({
+        originalText: originalDesc,
+        forbiddenWords: FORBIDDEN_WORDS,
+        productName: seoFormData.name,
+        model: seoFormData.model,
+        brand: seoFormData.brand,
+        voltage: seoFormData.voltage,
+        differentials: seoFormData.differentials,
+        altura: formatarMedidas.altura,
+        largura: formatarMedidas.largura,
+        profundidade: formatarMedidas.profundidade,
+        peso: formatarMedidas.peso
+      });
+      setRewriteResult(res);
+    } catch (err: any) {
+      console.error(err);
+      const isQuota = err?.message?.includes("429") || 
+                     err?.message?.includes("quota") || 
+                     err?.message?.includes("QUOTA_EXCEEDED") ||
+                     err?.message?.includes("Limite de geração") ||
+                     err?.status === 429;
+      if (isQuota) {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() + 15);
+        const retryTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        setQuotaError({ exceeded: true, retryTime });
+      } else if (err?.message?.includes("503") || err?.message?.includes("demand") || err?.status === 503) {
+        alert("O servidor está muito ocupado no momento (alta demanda). Por favor, tente novamente em alguns instantes.");
+      } else if (err?.message?.includes("API key expired") || err?.message?.includes("INVALID_ARGUMENT")) {
+        alert("Chave de API expirada ou inválida. Por favor, verifique as configurações da AI Studio.");
+      } else {
+        alert("Ocorreu um erro ao reescrever a descrição. Tente novamente.");
+      }
+    } finally {
+      setRewriteLoading(false);
+    }
+  }, [originalDesc, foundWords.length, setQuotaError]);
+
+  const handleSEOGenerate = React.useCallback(async (e: FormEvent) => {
+    e.preventDefault();
+    if (!seoFormData.name || !seoFormData.brand) {
+      return;
+    }
+    setSeoLoading(true);
+    try {
+      const res = await generateSEOTitle(seoFormData);
+      setSeoResult(res);
+    } catch (err: any) {
+      console.error(err);
+      const isQuota = err?.message?.includes("429") || 
+                     err?.message?.includes("quota") || 
+                     err?.message?.includes("QUOTA_EXCEEDED") ||
+                     err?.message?.includes("Limite de geração") ||
+                     err?.status === 429;
+      if (isQuota) {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() + 15);
+        const retryTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        setQuotaError({ exceeded: true, retryTime });
+      } else if (err?.message?.includes("503") || err?.message?.includes("demand") || err?.status === 503) {
+        alert("O servidor está muito ocupado no momento (alta demanda). Por favor, tente novamente em alguns instantes.");
+      } else if (err?.message?.includes("API key expired") || err?.message?.includes("INVALID_ARGUMENT")) {
+        alert("Chave de API expirada ou inválida. Por favor, verifique as configurações da AI Studio.");
+      } else {
+        alert("Ocorreu um erro ao gerar o SEO. Tente novamente.");
+      }
+    } finally {
+      setSeoLoading(false);
+    }
+  }, [seoFormData, setQuotaError]);
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] text-[#1A1A1A] font-sans selection:bg-orange-100">
-      <main className="max-w-7xl mx-auto px-4 py-8 md:py-12">
-        <div className="grid lg:grid-cols-12 gap-10">
-          {/* Left: Form */}
-          <div className="lg:col-span-4 space-y-6">
-            <Card className="border-none shadow-2xl shadow-gray-200/40 rounded-3xl overflow-hidden">
-              <CardContent className="p-8 space-y-8">
-                <form onSubmit={handleSubmit} className="space-y-8">
-                  {/* Image Upload */}
-                  <div className="space-y-3">
-                    <Label className="text-sm font-semibold">Referência Visual</Label>
-                    <div 
-                      onClick={() => fileInputRef.current?.click()}
-                      className={`relative aspect-square rounded-2xl border-2 border-dashed transition-all cursor-pointer group overflow-hidden flex flex-col items-center justify-center gap-4
-                        ${preview ? 'border-orange-500 bg-orange-50/20' : 'border-gray-200 hover:border-black hover:bg-gray-50'}`}
-                    >
-                      {preview ? (
-                        <>
-                          <img src={preview} alt="Preview" className="absolute inset-0 w-full h-full object-contain p-6" referrerPolicy="no-referrer" />
-                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <p className="text-white text-sm font-bold">Alterar Referência</p>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center group-hover:scale-110 transition-transform border border-gray-100">
-                            <Upload className="w-6 h-6 text-gray-400" />
-                          </div>
-                          <div className="text-center px-4">
-                            <p className="text-sm font-bold text-gray-900">Arraste ou clique</p>
-                            <p className="text-xs text-gray-400 mt-1">Alta resolução recomendada</p>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                    <input 
-                      type="file" 
-                      ref={fileInputRef} 
-                      onChange={handleFileChange} 
-                      className="hidden" 
-                      accept="image/*"
-                    />
-                  </div>
-
-                  {/* Dimensions */}
-                  <div className="grid grid-cols-2 gap-5">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Altura (cm)</Label>
-                      <div className="relative">
-                        <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <Input 
-                          placeholder="00" 
-                          className="pl-10 h-12 bg-gray-50/50 border-gray-100 focus:bg-white transition-all rounded-xl" 
-                          value={formData.altura}
-                          onChange={e => setFormData({...formData, altura: e.target.value})}
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Largura (cm)</Label>
-                      <div className="relative">
-                        <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 rotate-90" />
-                        <Input 
-                          placeholder="00" 
-                          className="pl-10 h-12 bg-gray-50/50 border-gray-100 focus:bg-white transition-all rounded-xl" 
-                          value={formData.largura}
-                          onChange={e => setFormData({...formData, largura: e.target.value})}
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Profundidade (cm)</Label>
-                      <div className="relative">
-                        <Ruler className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <Input 
-                          placeholder="00" 
-                          className="pl-10 h-12 bg-gray-50/50 border-gray-100 focus:bg-white transition-all rounded-xl" 
-                          value={formData.profundidade}
-                          onChange={e => setFormData({...formData, profundidade: e.target.value})}
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Peso (kg)</Label>
-                      <div className="relative">
-                        <Weight className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <Input 
-                          placeholder="0.0" 
-                          className="pl-10 h-12 bg-gray-50/50 border-gray-100 focus:bg-white transition-all rounded-xl" 
-                          value={formData.peso}
-                          onChange={e => setFormData({...formData, peso: e.target.value})}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Especificações Reais</Label>
-                    <Textarea 
-                      placeholder="Descreva materiais, acabamentos e diferenciais únicos..." 
-                      className="min-h-[120px] resize-none bg-gray-50/50 border-gray-100 focus:bg-white transition-all rounded-xl p-4"
-                      value={formData.descricao}
-                      onChange={e => setFormData({...formData, descricao: e.target.value})}
-                    />
-                  </div>
-
-                  {error && (
-                    <motion.div 
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="p-4 rounded-2xl bg-red-50 border border-red-100 flex gap-3 text-red-600 text-sm font-medium"
-                    >
-                      <AlertCircle className="w-5 h-5 shrink-0" />
-                      <p>{error}</p>
-                    </motion.div>
-                  )}
-
-                  <Button 
-                    type="submit" 
-                    disabled={loading}
-                    className="w-full h-14 bg-black hover:bg-gray-800 text-white font-bold rounded-2xl shadow-xl shadow-gray-200 transition-all active:scale-[0.98] disabled:opacity-70"
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="w-5 h-5 mr-3 animate-spin" />
-                        Processando Fidelidade AI...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-5 h-5 mr-3" />
-                        Gerar Kit de Alta Fidelidade
-                      </>
-                    )}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right: Results */}
-          <div className="lg:col-span-8">
-            {!result && !loading && (
-              <div className="h-full min-h-[700px] flex flex-col items-center justify-center text-center p-12 border-2 border-dashed border-gray-200 rounded-[40px] bg-white">
-                <div className="w-24 h-24 bg-gray-50 rounded-3xl flex items-center justify-center mb-8 border border-gray-100">
-                  <ImageIcon className="w-10 h-10 text-gray-300" />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900">Estúdio AI Pronto</h3>
-                <p className="text-gray-500 mt-3 max-w-md text-lg">Envie a referência do seu produto para gerar imagens realistas, SEO e descrições comerciais de alto impacto.</p>
-                <div className="grid grid-cols-2 gap-4 mt-10">
-                  <div className="flex items-center gap-2 text-sm text-gray-400">
-                    <CheckCircle2 className="w-4 h-4 text-green-500" />
-                    Fidelidade Visual 100%
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-400">
-                    <CheckCircle2 className="w-4 h-4 text-green-500" />
-                    SEO Otimizado
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {loading && (
-              <div className="space-y-10 animate-pulse">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {[...Array(8)].map((_, i) => (
-                    <Skeleton key={i} className="aspect-square rounded-[32px] bg-gray-100" />
-                  ))}
-                </div>
-                <div className="space-y-6">
-                  <Skeleton className="h-10 w-64 bg-gray-100 rounded-full" />
-                  <Skeleton className="h-48 w-full bg-gray-100 rounded-[32px]" />
-                </div>
-              </div>
-            )}
-
-            {result && (
+    <div className="min-h-screen bg-slate-50/50 text-[#1A1A1A] font-sans selection:bg-orange-100 pb-4">
+      {/* Modern Professional Header */}
+      <header className="w-full border-b border-blue-700 bg-blue-600 backdrop-blur-xl shrink-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between gap-2 lg:gap-4">
+            {/* Brand Logo with Animation */}
+            <div className="flex items-center gap-1.5 lg:gap-3 shrink-0">
               <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="space-y-16"
+                className="relative w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center bg-white/10 rounded-lg overflow-hidden border border-white/20 shadow-inner group"
+                whileHover={{ scale: 1.05 }}
               >
-                {/* Images Grid */}
-                <section className="space-y-8">
-                  <div className="flex items-end justify-between">
-                    <div className="space-y-1">
-                      <h2 className="text-3xl font-black tracking-tight">Galeria de Fidelidade</h2>
-                      <p className="text-gray-500">Imagens geradas com iluminação de estúdio e escala real.</p>
-                    </div>
-                    <Badge variant="secondary" className="bg-black text-white px-4 py-1.5 rounded-full">8 Ativos Gerados</Badge>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {result.images.map((img) => (
-                      <div 
-                        key={img.id}
-                        className="group relative bg-white rounded-[32px] overflow-hidden border border-gray-100 transition-colors hover:border-[#FF6A00]"
-                      >
-                        <div className="aspect-square relative overflow-hidden bg-[#FDFDFD]">
-                          <img 
-                            src={img.url} 
-                            alt={img.title} 
-                            className="w-full h-full object-contain p-8"
-                            referrerPolicy="no-referrer"
-                          />
-                          <div className="absolute top-5 left-5">
-                            <Badge className="bg-white/95 backdrop-blur-md text-black border-none shadow-xl px-4 py-1.5 font-bold text-xs uppercase tracking-widest">
-                              {img.title}
-                            </Badge>
-                          </div>
-                          <div className="absolute bottom-5 right-5 flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                            <Button size="icon" variant="secondary" className="rounded-full bg-white/95 backdrop-blur-md shadow-lg">
-                              <Download className="w-4 h-4" />
-                            </Button>
-                            <Button size="icon" variant="secondary" className="rounded-full bg-white/95 backdrop-blur-md shadow-lg">
-                              <Maximize2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="p-8 bg-white">
-                          <p className="text-sm text-gray-500 leading-relaxed font-medium">{img.description}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
+                {/* Background "Screen" Glow */}
+                <motion.div 
+                  className="absolute inset-0 bg-blue-400/20 shadow-[inset_0_0_10px_rgba(255,255,255,0.1)]"
+                  animate={{ 
+                    opacity: [0.2, 0.4, 0.2]
+                  }}
+                  transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                />
+                
+                {/* Vector Computer Icon */}
+                <motion.div
+                  animate={{ 
+                    y: [0, -1, 0],
+                    rotate: [0, 1, -1, 0]
+                  }}
+                  transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+                >
+                  <Monitor className="w-6 h-6 text-white drop-shadow-md" />
+                </motion.div>
 
-                {/* Cross-Sell Section */}
-                <section className="bg-black rounded-[40px] p-10 md:p-16 text-white space-y-10 overflow-hidden relative">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/20 blur-[120px] rounded-full -mr-32 -mt-32" />
-                  <div className="relative z-10 space-y-2">
-                    <div className="flex items-center gap-3 text-orange-500 mb-4">
-                      <ShoppingBag className="w-6 h-6" />
-                      <span className="text-xs font-black uppercase tracking-[0.3em]">Oportunidade de Venda</span>
-                    </div>
-                    <h2 className="text-4xl font-black tracking-tight">Compre Junto</h2>
-                    <p className="text-gray-400 text-lg max-w-xl">Aumente o ticket médio sugerindo estes complementos ideais para o seu produto.</p>
-                  </div>
+                {/* Animated Mouse Pointer (Working Effect) */}
+                <motion.div
+                  className="absolute bottom-2 right-2"
+                  animate={{ 
+                    x: [0, 2, -2, 4, 0],
+                    y: [0, -2, 2, -4, 0],
+                  }}
+                  transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                >
+                  <MousePointer2 className="w-3 h-3 text-white fill-white shadow-lg" />
+                </motion.div>
 
-                  <div className="grid md:grid-cols-2 gap-8 relative z-10">
-                    {result.crossSell.map((item, i) => (
-                      <div key={i} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-8 flex flex-col justify-between hover:bg-white/10 transition-colors group">
-                        <div className="space-y-4">
-                          <div className="w-12 h-12 bg-orange-500 rounded-2xl flex items-center justify-center mb-2">
-                            <PlusCircle className="w-6 h-6 text-white" />
-                          </div>
-                          <h3 className="text-xl font-bold">{item.name}</h3>
-                          <p className="text-gray-400 text-sm leading-relaxed">{item.description}</p>
-                        </div>
-                        <Button variant="link" className="text-orange-500 p-0 h-auto mt-6 group-hover:translate-x-2 transition-transform">
-                          Ver Detalhes <ArrowRight className="w-4 h-4 ml-2" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-
-                {/* SEO & Commercial */}
-                <div className="grid lg:grid-cols-2 gap-12">
-                  {/* SEO */}
-                  <section className="space-y-8 bg-white rounded-[40px] p-10 border border-gray-100 shadow-sm">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center">
-                        <Search className="w-5 h-5 text-orange-600" />
-                      </div>
-                      <h2 className="text-2xl font-black tracking-tight">Inteligência SEO</h2>
-                    </div>
-                    
-                    <div className="space-y-6">
-                      <div className="flex flex-wrap gap-3">
-                        {result.seo.map((tag, i) => (
-                          <Badge key={i} variant="outline" className="px-6 py-2.5 rounded-full border-gray-100 text-gray-700 bg-gray-50/50 hover:bg-white transition-all font-bold text-xs uppercase tracking-wider">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-
-                      <Separator className="bg-gray-100" />
-
-                      <div className="space-y-5">
-                        <div className="flex items-center gap-2">
-                          <CheckCircle2 className="w-5 h-5 text-green-500" />
-                          <h3 className="font-bold text-lg">Melhorias Técnicas</h3>
-                        </div>
-                        <ul className="space-y-4">
-                          {result.improvements.map((item, i) => (
-                            <li key={i} className="flex gap-4 text-sm text-gray-600 group">
-                              <div className="w-2 h-2 rounded-full bg-orange-500 mt-1.5 shrink-0 group-hover:scale-150 transition-transform" />
-                              <span className="leading-relaxed">{item}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  </section>
-
-                  {/* Commercial Description */}
-                  <section className="space-y-8 bg-white rounded-[40px] p-10 border border-gray-100 shadow-sm">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
-                        <FileText className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <h2 className="text-2xl font-black tracking-tight">Copy Comercial</h2>
-                    </div>
-                    
-                    <ScrollArea className="h-[450px] pr-4">
-                      <div className="space-y-10">
-                        <div className="space-y-3">
-                          <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-600">A Dor do Cliente</h4>
-                          <p className="text-gray-700 leading-relaxed text-lg italic">"{result.commercial.problem}"</p>
-                        </div>
-                        <div className="space-y-3">
-                          <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-600">A Solução AI</h4>
-                          <p className="text-gray-700 leading-relaxed">{result.commercial.solution}</p>
-                        </div>
-                        <div className="space-y-3">
-                          <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-600">Contexto de Uso</h4>
-                          <p className="text-gray-700 leading-relaxed">{result.commercial.context}</p>
-                        </div>
-                        <div className="p-6 bg-orange-50 rounded-3xl border border-orange-100 space-y-2">
-                          <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-600">Impacto de Venda</h4>
-                          <p className="text-orange-900 leading-relaxed font-bold">{result.commercial.benefit}</p>
-                        </div>
-                      </div>
-                    </ScrollArea>
-                  </section>
-                </div>
-
-                {/* Footer Action */}
-                <div className="pt-12 pb-32 flex flex-col items-center gap-6">
-                  <div className="flex gap-4">
-                    <Button className="rounded-full px-10 h-14 bg-black hover:bg-gray-800 text-white font-bold shadow-2xl shadow-gray-200" onClick={() => window.print()}>
-                      <Download className="w-5 h-5 mr-3" />
-                      Exportar Kit PDF
-                    </Button>
-                    <Button variant="outline" className="rounded-full px-10 h-14 border-gray-200 font-bold">
-                      Salvar na Nuvem
-                    </Button>
-                  </div>
-                  <p className="text-xs text-gray-400 font-medium">© 2026 E-com Studio Pro. Todos os direitos reservados.</p>
-                </div>
+                {/* Cyberpunk Scanning Line */}
+                <motion.div 
+                  className="absolute top-0 left-0 w-full h-[1px] bg-blue-300 shadow-[0_0_8px_#fff]"
+                  animate={{ y: [0, 40] }}
+                  transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                />
               </motion.div>
-            )}
+
+              <div className="flex flex-col -space-y-1 shrink-0 min-w-0">
+                <span className="font-black text-[15px] sm:text-[18px] md:text-[20px] lg:text-[22px] tracking-tighter uppercase text-white transition-all duration-300 whitespace-nowrap">ESTÚDIO CPA</span>
+                <span className="text-[5px] sm:text-[6px] lg:text-[7px] font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] lg:tracking-[0.3em] text-blue-100 pl-0.5 transition-all duration-300">Cadastro de Produto</span>
+              </div>
+            </div>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center tracking-tight min-width-0 flex-1 justify-center max-w-fit">
+              <button 
+                onClick={() => setActiveTab("seo")}
+                className={`flex items-center gap-1 lg:gap-2 px-2 lg:px-4 xl:px-6 py-2 rounded-lg text-[11px] lg:text-[13px] xl:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === "seo" ? "text-white" : "text-blue-100/60 hover:text-white"}`}
+              >
+                <Search className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${activeTab === "seo" ? "text-white" : "text-blue-100/60"}`} />
+                Titulo
+              </button>
+
+              <div className="w-[1px] h-4 bg-white/10 mx-1" />
+
+              <button 
+                onClick={() => setActiveTab("formatar")}
+                className={`flex items-center gap-1 lg:gap-2 px-2 lg:px-4 xl:px-6 py-2 rounded-lg text-[11px] lg:text-[13px] xl:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === "formatar" ? "text-white" : "text-blue-100/60 hover:text-white"}`}
+              >
+                <FileText className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${activeTab === "formatar" ? "text-white" : "text-blue-100/60"}`} />
+                Descrição
+              </button>
+
+              <div className="w-[1px] h-4 bg-white/10 mx-1" />
+
+              <button 
+                onClick={() => setActiveTab("imagem")}
+                className={`flex items-center gap-1 lg:gap-2 px-2 lg:px-4 xl:px-6 py-2 rounded-lg text-[11px] lg:text-[13px] xl:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === "imagem" ? "text-white" : "text-blue-100/60 hover:text-white"}`}
+              >
+                <ImageIcon className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${activeTab === "imagem" ? "text-white" : "text-blue-100/60"}`} />
+                Imagem
+                {imageLoading && (
+                  <motion.div 
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  >
+                    <Loader2 className="w-3 h-3" />
+                  </motion.div>
+                )}
+              </button>
+
+              <div className="w-[1px] h-4 bg-white/10 mx-1" />
+
+              <button 
+                onClick={() => setActiveTab("prompts")}
+                className={`flex items-center gap-1 lg:gap-2 px-2 lg:px-4 xl:px-6 py-2 rounded-lg text-[11px] lg:text-[13px] xl:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === "prompts" ? "text-white" : "text-blue-100/60 hover:text-white"}`}
+              >
+                <Bookmark className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${activeTab === "prompts" ? "text-white" : "text-blue-100/60"}`} />
+                Prompt
+              </button>
+
+              <div className="w-[1px] h-4 bg-white/10 mx-1" />
+
+              <button 
+                onClick={() => setActiveTab("ferramentas")}
+                className={`flex items-center gap-1 lg:gap-2 px-2 lg:px-4 xl:px-6 py-2 rounded-lg text-[11px] lg:text-[13px] xl:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === "ferramentas" ? "text-white" : "text-blue-100/60 hover:text-white"}`}
+              >
+                <Wrench className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${activeTab === "ferramentas" ? "text-white" : "text-blue-100/60"}`} />
+                Ferramentas
+              </button>
+
+              <div className="w-[1px] h-4 bg-white/10 mx-1" />
+
+              <button 
+                onClick={() => setActiveTab("video")}
+                className={`flex items-center gap-1 lg:gap-2 px-2 lg:px-4 xl:px-6 py-2 rounded-lg text-[11px] lg:text-[13px] xl:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === "video" ? "text-white" : "text-blue-100/60 hover:text-white"}`}
+              >
+                <Video className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${activeTab === "video" ? "text-white" : "text-blue-100/60"}`} />
+                Vídeo
+              </button>
+
+              <div className="w-[1px] h-4 bg-white/10 mx-1" />
+
+              <button 
+                onClick={() => setActiveTab("seo_manager")}
+                className={`flex items-center gap-1 lg:gap-2 px-2 lg:px-4 xl:px-6 py-2 rounded-lg text-[11px] lg:text-[13px] xl:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === "seo_manager" ? "text-white" : "text-blue-100/60 hover:text-white"}`}
+              >
+                <Target className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${activeTab === "seo_manager" ? "text-white" : "text-blue-100/60"}`} />
+                SEO
+              </button>
+
+              <div className="w-[1px] h-4 bg-white/10 mx-1" />
+
+              <button 
+                onClick={() => setActiveTab("treinamento")}
+                className={`flex items-center gap-1 lg:gap-2 px-2 lg:px-4 xl:px-6 py-2 rounded-lg text-[11px] lg:text-[13px] xl:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === "treinamento" ? "text-white" : "text-blue-100/60 hover:text-white"}`}
+              >
+                <PlusCircle className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${activeTab === "treinamento" ? "text-white" : "text-blue-100/60"}`} />
+                Cadastro
+              </button>
+            </nav>
+
+            <div className="hidden md:flex items-center gap-2 lg:gap-4 shrink-0">
+            </div>
           </div>
         </div>
+      </header>
+
+      {/* Mobile Navigation */}
+      <div className="md:hidden bg-blue-600 border-b border-blue-700 p-2">
+        <ScrollArea className="w-full">
+          <div className="flex items-center p-1 w-max">
+            <button 
+              onClick={() => setActiveTab("seo")}
+              className={`px-4 py-3 rounded-lg text-[10px] font-black uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "seo" ? "text-white" : "text-white/40"}`}
+            >
+              <Search className="w-4 h-4" />
+              Titulo
+            </button>
+            
+            <div className="w-[1px] h-4 bg-white/10 mx-1" />
+
+            <button 
+              onClick={() => setActiveTab("formatar")}
+              className={`px-4 py-3 rounded-lg text-[10px] font-black uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "formatar" ? "text-white" : "text-white/40"}`}
+            >
+              <FileText className="w-4 h-4" />
+              Descrição
+            </button>
+
+            <div className="w-[1px] h-4 bg-white/10 mx-1" />
+
+            <button 
+              onClick={() => setActiveTab("imagem")}
+              className={`px-4 py-3 rounded-lg text-[10px] font-black uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "imagem" ? "text-white" : "text-white/40"}`}
+            >
+              <ImageIcon className="w-4 h-4" />
+              Imagem
+            </button>
+
+            <div className="w-[1px] h-4 bg-white/10 mx-1" />
+
+            <button 
+              onClick={() => setActiveTab("prompts")}
+              className={`px-4 py-3 rounded-lg text-[10px] font-black uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "prompts" ? "text-white" : "text-white/40"}`}
+            >
+              <Bookmark className="w-4 h-4" />
+              Prompt
+            </button>
+
+            <div className="w-[1px] h-4 bg-white/10 mx-1" />
+
+            <button 
+              onClick={() => setActiveTab("ferramentas")}
+              className={`px-4 py-3 rounded-lg text-[10px] font-black uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "ferramentas" ? "text-white" : "text-white/40"}`}
+            >
+              <Wrench className="w-4 h-4" />
+              Ferramentas
+            </button>
+
+            <div className="w-[1px] h-4 bg-white/10 mx-1" />
+
+            <button 
+              onClick={() => setActiveTab("video")}
+              className={`px-4 py-3 rounded-lg text-[10px] font-black uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "video" ? "text-white" : "text-white/40"}`}
+            >
+              <Video className="w-4 h-4" />
+              Vídeo
+            </button>
+
+            <div className="w-[1px] h-4 bg-white/10 mx-1" />
+
+            <button 
+              onClick={() => setActiveTab("seo_manager")}
+              className={`px-4 py-3 rounded-lg text-[10px] font-black uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "seo_manager" ? "text-white" : "text-white/40"}`}
+            >
+              <Target className="w-4 h-4" />
+              SEO
+            </button>
+
+            <div className="w-[1px] h-4 bg-white/10 mx-1" />
+
+            <button 
+              onClick={() => setActiveTab("treinamento")}
+              className={`px-4 py-3 rounded-lg text-[10px] font-black uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "treinamento" ? "text-white" : "text-white/40"}`}
+            >
+              <PlusCircle className="w-4 h-4" />
+              Cadastro
+            </button>
+          </div>
+        </ScrollArea>
+      </div>
+
+      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-4 md:py-6 flex-1">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
+          {/* Hide the old TabsList since we moved it to the header */}
+          <div className="hidden">
+            <TabsList>
+              <TabsTrigger value="seo">S</TabsTrigger>
+              <TabsTrigger value="formatar">F</TabsTrigger>
+              <TabsTrigger value="imagem">I</TabsTrigger>
+              <TabsTrigger value="treinamento">T</TabsTrigger>
+            </TabsList>
+          </div>
+
+          <TabsContent value="treinamento">
+            <TreinamentoTab />
+          </TabsContent>
+
+          <TabsContent value="imagem">
+            <ImageTab 
+              imageLoading={imageLoading}
+              imageResult={imageResult}
+               imageError={imageError}
+              preview={preview}
+              filename={filename}
+              imageFormData={imageFormData}
+              setImageFormData={setImageFormData}
+              handleSubmit={handleSubmit}
+              handleFileChange={handleFileChange}
+              handleDownload={handleDownload}
+              setSelectedImage={setSelectedImage}
+              clearImageResult={clearImageResult}
+              filenameCopyAlert={filenameCopyAlert}
+              setFilenameCopyAlert={setFilenameCopyAlert}
+              uploadFilenameCopyAlert={uploadFilenameCopyAlert}
+              setUploadFilenameCopyAlert={setUploadFilenameCopyAlert}
+              quotaExceeded={quotaError?.exceeded ?? false}
+              setPreview={setPreview}
+              setFilename={setFilename}
+            />
+          </TabsContent>
+
+          <TabsContent value="formatar">
+            <DescriptionTab 
+              originalDesc={originalDesc}
+              setOriginalDesc={setOriginalDesc}
+              formatarMedidas={formatarMedidas}
+              setFormatarMedidas={setFormatarMedidas}
+              handleRewrite={handleRewrite}
+              rewriteLoading={rewriteLoading}
+              rewriteResult={rewriteResult}
+              foundWords={foundWords}
+              wordCounts={wordCounts}
+              showForbiddenAlert={showForbiddenAlert}
+              setShowForbiddenAlert={setShowForbiddenAlert}
+              copyAlert={copyAlert}
+              setCopyAlert={setCopyAlert}
+              typeDescAlert={typeDescAlert}
+              setTypeDescAlert={setTypeDescAlert}
+              quotaExceeded={quotaError?.exceeded ?? false}
+              seoFormData={seoFormData}
+              forbiddenWords={FORBIDDEN_WORDS}
+            />
+          </TabsContent>
+          <TabsContent value="seo">
+            <SEOTab 
+              seoFormData={seoFormData}
+              setSeoFormData={setSeoFormData}
+              handleSEOGenerate={handleSEOGenerate}
+              seoLoading={seoLoading}
+              seoResult={seoResult}
+              seoCopyAlert={seoCopyAlert}
+              setSeoCopyAlert={setSeoCopyAlert}
+              quotaExceeded={quotaError?.exceeded ?? false}
+            />
+          </TabsContent>
+          <TabsContent value="prompts">
+            <PromptSaverTab />
+          </TabsContent>
+          <TabsContent value="ferramentas">
+            <ToolsTab />
+          </TabsContent>
+          <TabsContent value="video">
+            <VideoTab />
+          </TabsContent>
+          <TabsContent value="seo_manager">
+            <SEOManagerTab />
+          </TabsContent>
+        </Tabs>
       </main>
+      {/* Image Viewer Portal */}
+      <AnimatePresence>
+        {selectedImage && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10 bg-black/90 backdrop-blur-sm"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-4xl bg-white rounded-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
+            >
+              <div className="absolute top-6 right-6 z-10 flex gap-2">
+                <Button 
+                  size="icon" 
+                  variant="secondary" 
+                  className="rounded-lg bg-white/90 shadow-xl"
+                  onClick={() => {
+                    const finalName = filename 
+                      ? (selectedImage.id === 1 ? `${filename}.jpg` : `${filename}-${selectedImage.id - 1}.jpg`)
+                      : `produto_${selectedImage.id}.jpg`;
+                    handleDownload(selectedImage.url, finalName);
+                  }}
+                >
+                  <Download className="w-5 h-5 text-black" />
+                </Button>
+                <Button 
+                  size="icon" 
+                  variant="secondary" 
+                  className="rounded-lg bg-black text-white shadow-xl hover:bg-gray-800"
+                  onClick={() => setSelectedImage(null)}
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+              </div>
+
+              <div className="flex-1 bg-[#FDFDFD] flex items-center justify-center p-4 md:p-8 overflow-y-auto overflow-x-auto min-h-0">
+                <img 
+                  src={selectedImage.url} 
+                  alt="Expanded view" 
+                  className="max-w-full max-h-[75vh] object-contain select-none"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
+
