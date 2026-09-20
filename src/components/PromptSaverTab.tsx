@@ -8,14 +8,15 @@ import {
   Trash2, 
   Save, 
   X,
-  Type,
   AlignLeft,
   Search,
   Loader2,
   AlertCircle,
   Cloud,
   Sparkles,
-  Image
+  Image,
+  ChevronDown,
+  ChevronUp
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -72,6 +73,10 @@ export function PromptSaverTab() {
   const [currentPrompt, setCurrentPrompt] = React.useState<SavedPrompt | null>(null);
   const [copyStatus, setCopyStatus] = React.useState<string | null>(null);
   const [saveAlert, setSaveAlert] = React.useState(false);
+  const [expandedPrompts, setExpandedPrompts] = React.useState<Record<string, boolean>>({});
+  const toggleExpandPrompt = (id: string) => {
+    setExpandedPrompts(prev => ({ ...prev, [id]: !prev[id] }));
+  };
   const [showSaveDetailsModal, setShowSaveDetailsModal] = React.useState(false);
   const [saveDetails, setSaveDetails] = React.useState<{
     title: string;
@@ -89,10 +94,58 @@ export function PromptSaverTab() {
     ordem: null
   });
 
-  const [selectedSubmenu, setSelectedSubmenu] = React.useState("Cadastro de produto");
+  const PROMPT_SUBMENU_KEY = "cpa_prompt_active_submenu";
+
+  const getInitialPromptSubmenu = (): string => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("tab") === "prompts") {
+        const urlSub = params.get("sub");
+        if (urlSub) return urlSub;
+      }
+      const saved = localStorage.getItem(PROMPT_SUBMENU_KEY);
+      if (saved) return saved;
+    } catch (e) {
+      console.error("Error reading saved prompt submenu:", e);
+    }
+    return "Cadastro de produto";
+  };
+
+  const [selectedSubmenu, setSelectedSubmenuState] = React.useState<string>(getInitialPromptSubmenu);
+
+  const setSelectedSubmenu = React.useCallback((sub: string) => {
+    setSelectedSubmenuState(sub);
+    try {
+      localStorage.setItem(PROMPT_SUBMENU_KEY, sub);
+      const url = new URL(window.location.href);
+      if (url.searchParams.get("tab") === "prompts") {
+        url.searchParams.set("sub", sub);
+        window.history.replaceState({}, "", url.toString());
+      }
+    } catch (e) {
+      console.error("Error persisting prompt submenu:", e);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    try {
+      const url = new URL(window.location.href);
+      if (url.searchParams.get("tab") === "prompts" && !url.searchParams.has("sub")) {
+        url.searchParams.set("sub", selectedSubmenu);
+        window.history.replaceState({}, "", url.toString());
+      }
+    } catch (e) {
+      console.error("Error updating prompt submenu URL:", e);
+    }
+  }, [selectedSubmenu]);
+
   const [customSubmenus, setCustomSubmenus] = React.useState<string[]>(() => {
-    const saved = localStorage.getItem("prompt_custom_submenus");
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem("prompt_custom_submenus");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
   });
   const [isAddingGlobalSubmenu, setIsAddingGlobalSubmenu] = React.useState(false);
   const [newGlobalSubmenuName, setNewGlobalSubmenuName] = React.useState("");
@@ -292,10 +345,10 @@ export function PromptSaverTab() {
         nome: currentPrompt.name,
         tipo: currentPrompt.type,
         conteudo: currentPrompt.content,
-        drive_link: currentPrompt.driveLink,
-        imagem_link: currentPrompt.imageLink,
+        drive_link: currentPrompt.driveLink || null,
+        imagem_link: currentPrompt.imageLink || null,
         criado_em: currentPrompt.createdAt || new Date().toISOString(),
-        submenu: currentPrompt.submenu || "Cadastro de produto",
+        submenu: currentPrompt.submenu || selectedSubmenu || "Cadastro de produto",
         ordem: typeof currentPrompt.ordem === 'number' ? currentPrompt.ordem : (currentPrompt.ordem ? parseInt(String(currentPrompt.ordem), 10) : null)
       };
 
@@ -363,26 +416,27 @@ export function PromptSaverTab() {
     setTimeout(() => setCopyStatus(null), 2000);
   };
 
-  const filteredPrompts = prompts
-    .filter(p => {
-      const promptSubmenu = p.submenu || "Cadastro de produto";
-      if (promptSubmenu !== selectedSubmenu) {
-        return false;
-      }
-      return (
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.content.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    })
-    .sort((a, b) => {
-      const orderA = (a.ordem !== undefined && a.ordem !== null && a.ordem > 0) ? a.ordem : 999999;
-      const orderB = (b.ordem !== undefined && b.ordem !== null && b.ordem > 0) ? b.ordem : 999999;
-      if (orderA !== orderB) {
-        return orderA - orderB;
-      }
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
+  const filteredPrompts = React.useMemo(() => {
+    return prompts
+      .filter(p => {
+        const sub = (p.submenu || "").trim().toLowerCase();
+        const tipo = (p.type || "").trim().toLowerCase();
+        // Remove all "pessoal" prompts
+        if (sub === "pessoal" || sub.includes("pessoal") || tipo === "pessoal") {
+          return false;
+        }
+        // Keep only product registration prompts
+        return true;
+      })
+      .sort((a, b) => {
+        const orderA = (a.ordem !== undefined && a.ordem !== null && a.ordem > 0) ? a.ordem : 999999;
+        const orderB = (b.ordem !== undefined && b.ordem !== null && b.ordem > 0) ? b.ordem : 999999;
+        if (orderA !== orderB) {
+          return orderA - orderB;
+        }
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      });
+  }, [prompts]);
 
   return (
     <div className="space-y-6">
@@ -403,141 +457,6 @@ export function PromptSaverTab() {
         )}
       </AnimatePresence>
 
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div className="relative w-full md:max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <Input 
-            ref={searchInputRef}
-            placeholder="Pesquisar prompts..." 
-            className="pl-10 pr-10 h-11 border-slate-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg bg-white shadow-sm"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          {searchQuery && (
-            <button
-              onClick={() => {
-                setSearchQuery("");
-                searchInputRef.current?.focus();
-              }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 transition-colors"
-              title="Limpar busca"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <Button 
-            onClick={() => {
-              setGenerateFormData({
-                title: "",
-                category: "",
-                objective: "",
-                context: "",
-                theme: "",
-                audience: "",
-                tone: "",
-                restrictions: "",
-                expectedResult: "",
-                generatedPrompt: ""
-              });
-              setGenerateError(null);
-              setIsGenerating(true);
-            }}
-            className="w-full md:w-auto h-11 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-lg shadow-md px-6"
-          >
-            <Sparkles className="w-5 h-5 mr-2" />
-            Criar Prompt
-          </Button>
-          <Button 
-            onClick={handleAddPrompt}
-            className="w-full md:w-auto h-11 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-md px-6"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Adicionar Prompt
-          </Button>
-        </div>
-      </div>
-
-      {/* Submenus Filter Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between bg-slate-50 p-2 rounded-xl border border-slate-200/60 gap-4">
-        <div className="flex flex-wrap items-center gap-1.5">
-          {allSubmenus.map((sub) => {
-            const isActive = selectedSubmenu === sub;
-            return (
-              <button
-                key={sub}
-                onClick={() => setSelectedSubmenu(sub)}
-                className={`px-4 py-2 text-xs font-bold rounded-lg uppercase tracking-tight transition-all duration-200 border border-transparent ${
-                  isActive
-                    ? "bg-blue-600 text-white shadow-sm"
-                    : "text-slate-600 hover:text-blue-600 hover:bg-slate-100/80"
-                }`}
-              >
-                {sub}
-              </button>
-            );
-          })}
-        </div>
-        
-        {/* Add custom submenu button */}
-        <div className="flex items-center gap-2 shrink-0">
-          {isAddingGlobalSubmenu ? (
-            <div className="flex items-center gap-1.5 bg-white p-1 rounded-lg border border-slate-200 shadow-sm">
-              <Input
-                value={newGlobalSubmenuName}
-                onChange={(e) => setNewGlobalSubmenuName(e.target.value)}
-                placeholder="Nome do submenu..."
-                className="h-8 text-xs border-0 focus:ring-0 focus-visible:ring-0 w-44"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleCreateSubmenu(newGlobalSubmenuName);
-                    setNewGlobalSubmenuName("");
-                    setIsAddingGlobalSubmenu(false);
-                  }
-                }}
-              />
-              <Button
-                type="button"
-                size="icon"
-                onClick={() => {
-                  if (newGlobalSubmenuName.trim()) {
-                    handleCreateSubmenu(newGlobalSubmenuName);
-                    setNewGlobalSubmenuName("");
-                    setIsAddingGlobalSubmenu(false);
-                  }
-                }}
-                className="bg-blue-600 hover:bg-blue-700 text-white h-7 w-7 rounded-md"
-              >
-                <Check className="w-3.5 h-3.5" />
-              </Button>
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                onClick={() => {
-                  setNewGlobalSubmenuName("");
-                  setIsAddingGlobalSubmenu(false);
-                }}
-                className="h-7 w-7 text-slate-400 hover:text-slate-600"
-              >
-                <X className="w-3.5 h-3.5" />
-              </Button>
-            </div>
-          ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsAddingGlobalSubmenu(true)}
-              className="h-9 border-slate-200 text-slate-600 hover:text-blue-600 hover:bg-white text-xs font-bold rounded-lg shadow-sm"
-            >
-              <Plus className="w-3.5 h-3.5 mr-1" />
-              Novo Submenu
-            </Button>
-          )}
-        </div>
-      </div>
-
       {error && (
         <div className="p-4 bg-red-50 border border-red-100 rounded-lg flex items-center text-red-600 gap-3">
           <AlertCircle className="w-5 h-5" />
@@ -554,7 +473,7 @@ export function PromptSaverTab() {
             </div>
           </div>
         ) : filteredPrompts.length === 0 ? (
-          <Card className="border-dashed border-2 border-slate-200 bg-slate-50/50">
+          <Card className="border-0 shadow-none bg-white rounded-xl">
             <CardContent className="h-40 flex flex-col items-center justify-center text-slate-400">
               <Check className="w-8 h-8 mb-2 opacity-20" />
               <p className="text-sm font-medium">Nenhum prompt encontrado.</p>
@@ -568,105 +487,121 @@ export function PromptSaverTab() {
               animate={{ opacity: 1, y: 0 }}
               className="group"
             >
-              <Card className="overflow-hidden border-slate-200 hover:border-blue-300 transition-all duration-300 shadow-sm hover:shadow-md flex flex-col md:flex-row bg-white">
-                {/* Left content area */}
-                <div className="flex-1 min-w-0 flex flex-col bg-white">
-                  {/* Top Header contains title, badges, copy & edit buttons */}
-                  <CardHeader className="p-4 md:p-6 bg-white border-b border-slate-100 flex-none">
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
-                        <Type className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center flex-wrap gap-2 mb-1">
-                          {prompt.ordem ? (
-                            <Badge variant="secondary" className="bg-blue-600 text-white rounded-md text-[10px] font-black px-2 py-0.5">
-                              #{prompt.ordem}
-                            </Badge>
-                          ) : null}
-                          <h3 className="font-bold text-slate-900 text-base">{prompt.name}</h3>
-                          {prompt.type && (
-                            <Badge variant="secondary" className="bg-slate-100 text-slate-600 rounded-md text-[10px] uppercase tracking-wider font-bold">
-                              {prompt.type}
-                            </Badge>
+              <Card className="overflow-hidden border-0 shadow-none rounded-xl flex flex-col bg-white">
+                {/* 1. Imagem de referência do prompt NO TOPO DO CARD */}
+                {prompt.imageLink && (
+                  <div className="w-full h-52 sm:h-60 md:h-72 bg-slate-50/50 overflow-hidden flex items-center justify-center border-0">
+                    <PromptCardImage src={prompt.imageLink} />
+                  </div>
+                )}
+
+                {/* 2. Top Header: Título à esquerda, Botões Copiar e Editar à direita (SEM BORDAS) */}
+                <CardHeader className="px-5 pt-4 pb-1.5 bg-white border-0 flex-none">
+                  <div className="flex items-center justify-between gap-3 flex-wrap sm:flex-nowrap">
+                    <div className="flex items-center flex-wrap gap-2 min-w-0">
+                      {prompt.ordem ? (
+                        <Badge variant="secondary" className="bg-blue-600 text-white rounded-md text-[10px] font-black px-2 py-0.5 border-0">
+                          #{prompt.ordem}
+                        </Badge>
+                      ) : null}
+                      <h3 className="font-bold text-slate-900 text-base">{prompt.name}</h3>
+                      {prompt.type && (
+                        <Badge variant="secondary" className="bg-slate-100 text-slate-600 rounded-md text-[10px] uppercase tracking-wider font-bold border-0">
+                          {prompt.type}
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* Botão Copiar Prompt e Editar do lado direito do título, SEM BORDAS */}
+                    <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => handleCopyPrompt(prompt.content, prompt.id)}
+                        className={`h-8 px-2.5 text-xs font-bold rounded-lg border-0 shadow-none transition-all ${
+                          copyStatus === prompt.id 
+                            ? "bg-green-50 text-green-700 hover:bg-green-100" 
+                            : "bg-transparent text-slate-600 hover:bg-slate-100 hover:text-blue-600"
+                        }`}
+                      >
+                        {copyStatus === prompt.id ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 mr-1.5 text-green-600" />
+                            Copiado
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5 mr-1.5 text-slate-500" />
+                            Copiar Prompt
+                          </>
+                        )}
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => handleEditPrompt(prompt)}
+                        className="h-8 px-2.5 text-xs font-bold rounded-lg border-0 shadow-none bg-transparent text-slate-600 hover:bg-slate-100 hover:text-blue-600"
+                      >
+                        <Edit2 className="w-3.5 h-3.5 mr-1.5 text-slate-500" />
+                        Editar
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+
+                {/* 3. Conteúdo: Texto do prompt com ocultação de overflow e botão Ver mais */}
+                <CardContent className="px-5 pt-1 pb-4 bg-white border-0 flex flex-col justify-between">
+                  {(() => {
+                    const isExpanded = Boolean(expandedPrompts[prompt.id]);
+                    const isLongText = (prompt.content || "").length > 220 || (prompt.content || "").split("\n").length > 4;
+                    return (
+                      <div className="bg-white p-0 rounded-none border-0">
+                        <div className={`relative transition-all duration-300 ${!isExpanded && isLongText ? "max-h-24 overflow-hidden" : ""}`}>
+                          <p className="text-slate-700 text-sm whitespace-pre-wrap leading-relaxed">
+                            {prompt.content}
+                          </p>
+                          {!isExpanded && isLongText && (
+                            <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white to-transparent pointer-events-none" />
                           )}
                         </div>
 
-                        {/* Botão copiar e editar embaixo do título do prompt */}
-                        <div className="flex items-center gap-2 mt-2.5">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => handleCopyPrompt(prompt.content, prompt.id)}
-                            className={`h-8 px-3 text-xs font-bold rounded-lg transition-all border-slate-200 ${
-                              copyStatus === prompt.id 
-                                ? "bg-green-50 text-green-700 border-green-300 hover:bg-green-100" 
-                                : "bg-white text-slate-700 hover:bg-slate-50 hover:text-blue-600"
-                            }`}
+                        {isLongText && (
+                          <button
+                            type="button"
+                            onClick={() => toggleExpandPrompt(prompt.id)}
+                            className="mt-2 text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 transition-colors self-start cursor-pointer select-none"
                           >
-                            {copyStatus === prompt.id ? (
+                            {isExpanded ? (
                               <>
-                                <Check className="w-3.5 h-3.5 mr-1.5 text-green-600" />
-                                Copiado
+                                <span>Ver menos</span>
+                                <ChevronUp className="w-3.5 h-3.5" />
                               </>
                             ) : (
                               <>
-                                <Copy className="w-3.5 h-3.5 mr-1.5 text-slate-500" />
-                                Copiar Prompt
+                                <span>Ver mais</span>
+                                <ChevronDown className="w-3.5 h-3.5" />
                               </>
                             )}
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={() => handleEditPrompt(prompt)}
-                            className="h-8 px-3 text-xs font-bold rounded-lg border-slate-200 bg-white text-slate-700 hover:bg-slate-50 hover:text-blue-600"
-                          >
-                            <Edit2 className="w-3.5 h-3.5 mr-1.5 text-slate-500" />
-                            Editar
-                          </Button>
-                        </div>
+                          </button>
+                        )}
                       </div>
+                    );
+                  })()}
+
+                  {prompt.driveLink && (
+                    <div className="mt-3 flex justify-start">
+                      <Button 
+                        asChild
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-tight h-9 px-6 rounded-full shadow-md group transition-all text-xs border-0"
+                      >
+                        <a href={prompt.driveLink} target="_blank" rel="noopener noreferrer">
+                          <Cloud className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform text-blue-100" />
+                          Abrir no Google Drive
+                        </a>
+                      </Button>
                     </div>
-                  </CardHeader>
-
-                  <CardContent className="p-4 md:p-6 bg-white flex-1 flex flex-col justify-between">
-                    <div className="bg-white p-4 rounded-lg border border-slate-200 flex-1 min-h-[120px]">
-                      <p className="text-slate-700 text-sm whitespace-pre-wrap leading-relaxed">
-                        {prompt.content}
-                      </p>
-                    </div>
-
-                    {prompt.driveLink && (
-                      <div className="mt-4 flex justify-start">
-                        <Button 
-                          asChild
-                          className="bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-tight h-10 px-8 rounded-full shadow-lg group transition-all text-xs"
-                        >
-                          <a href={prompt.driveLink} target="_blank" rel="noopener noreferrer">
-                            <Cloud className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform text-blue-100" />
-                            Abrir no Google Drive
-                          </a>
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </div>
-
-                {/* Right image area - fundo branco */}
-                <div className="p-4 md:p-6 bg-white border-t md:border-t-0 md:border-l border-slate-100 flex flex-col items-center md:items-center md:justify-center gap-4 md:shrink-0 w-full md:w-[288px]">
-                  {/* Image or placeholder */}
-                  <div className="w-[240px] h-[240px] bg-white rounded-lg border border-slate-200/60 overflow-hidden flex items-center justify-center shadow-sm shrink-0">
-                    {prompt.imageLink ? (
-                      <PromptCardImage src={prompt.imageLink} />
-                    ) : (
-                      <div className="w-full h-full bg-white flex flex-col items-center justify-center text-slate-300">
-                        <Image className="w-8 h-8 stroke-[1.5]" />
-                        <span className="text-[11px] font-medium mt-1">Sem imagem</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                  )}
+                </CardContent>
               </Card>
             </motion.div>
           ))
@@ -900,7 +835,6 @@ export function PromptSaverTab() {
                     min={1}
                     value={saveDetails.ordem ?? ""}
                     onChange={(e) => setSaveDetails({...saveDetails, ordem: e.target.value ? parseInt(e.target.value, 10) : null})}
-                    placeholder="Ex: 1"
                     className="h-11 border-slate-200 focus:border-blue-500 rounded-lg font-bold"
                   />
                 </div>
@@ -923,7 +857,6 @@ export function PromptSaverTab() {
                       <Input
                         value={newSubNameSave}
                         onChange={(e) => setNewSubNameSave(e.target.value)}
-                        placeholder="Nome do submenu..."
                         className="h-9 text-xs border-slate-200"
                         onKeyDown={(e) => {
                           if (e.key === 'Enter') {
@@ -984,7 +917,6 @@ export function PromptSaverTab() {
                   <Input 
                     value={saveDetails.driveLink}
                     onChange={(e) => setSaveDetails({...saveDetails, driveLink: e.target.value})}
-                    placeholder="https://..."
                     className="h-11 border-slate-200 focus:border-blue-500 rounded-lg"
                   />
                 </div>
@@ -993,7 +925,6 @@ export function PromptSaverTab() {
                   <Input 
                     value={saveDetails.imageLink}
                     onChange={(e) => setSaveDetails({...saveDetails, imageLink: e.target.value})}
-                    placeholder="https://exemplo.com/imagem.png"
                     className="h-11 border-slate-200 focus:border-blue-500 rounded-lg"
                   />
                 </div>
@@ -1116,7 +1047,6 @@ export function PromptSaverTab() {
                       <Input 
                         value={currentPrompt.name}
                         onChange={(e) => setCurrentPrompt({...currentPrompt, name: e.target.value})}
-                        placeholder="Ex: Refazer Descrição Fritadeira"
                         className="h-11 border-slate-200 focus:border-blue-500 rounded-lg"
                         disabled={isSaving}
                       />
@@ -1128,7 +1058,6 @@ export function PromptSaverTab() {
                         min={1}
                         value={currentPrompt.ordem ?? ""}
                         onChange={(e) => setCurrentPrompt({...currentPrompt, ordem: e.target.value ? parseInt(e.target.value, 10) : null})}
-                        placeholder="Ex: 1 (Topo)"
                         className="h-11 border-slate-200 focus:border-blue-500 rounded-lg font-bold"
                         disabled={isSaving}
                       />
@@ -1138,7 +1067,6 @@ export function PromptSaverTab() {
                       <Input 
                         value={currentPrompt.type}
                         onChange={(e) => setCurrentPrompt({...currentPrompt, type: e.target.value})}
-                        placeholder="Ex: Imagem, SEO, Texto"
                         className="h-11 border-slate-200 focus:border-blue-500 rounded-lg"
                         disabled={isSaving}
                       />
@@ -1164,7 +1092,6 @@ export function PromptSaverTab() {
                         <Input
                           value={newSubNameEdit}
                           onChange={(e) => setNewSubNameEdit(e.target.value)}
-                          placeholder="Nome..."
                           className="h-11 text-xs border-slate-200"
                           onKeyDown={(e) => {
                             if (e.key === 'Enter') {
@@ -1227,7 +1154,6 @@ export function PromptSaverTab() {
                     <Textarea 
                       value={currentPrompt.content}
                       onChange={(e) => setCurrentPrompt({...currentPrompt, content: e.target.value})}
-                      placeholder="Escreva aqui o conteúdo do seu prompt..."
                       className="min-h-[200px] border-slate-200 focus:border-blue-500 rounded-lg resize-none"
                       disabled={isSaving}
                     />
@@ -1240,7 +1166,6 @@ export function PromptSaverTab() {
                     <Input 
                       value={currentPrompt.driveLink || ""}
                       onChange={(e) => setCurrentPrompt({...currentPrompt, driveLink: e.target.value})}
-                      placeholder="https://drive.google.com/..."
                       className="h-11 border-slate-200 focus:border-blue-500 rounded-lg"
                       disabled={isSaving}
                     />
@@ -1254,7 +1179,6 @@ export function PromptSaverTab() {
                     <Input 
                       value={currentPrompt.imageLink || ""}
                       onChange={(e) => setCurrentPrompt({...currentPrompt, imageLink: e.target.value})}
-                      placeholder="https://exemplo.com/imagem.png"
                       className="h-11 border-slate-200 focus:border-blue-500 rounded-lg"
                       disabled={isSaving}
                     />
@@ -1323,19 +1247,14 @@ function PromptCardImage({ src }: { src: string }) {
   const [hasError, setHasError] = useState(false);
 
   if (hasError || !src) {
-    return (
-      <div className="w-full h-full bg-white flex flex-col items-center justify-center text-slate-300">
-        <Image className="w-8 h-8 stroke-[1.5]" />
-        <span className="text-[11px] font-medium mt-1">Sem imagem</span>
-      </div>
-    );
+    return null;
   }
 
   return (
     <img
       src={src}
-      className="w-full h-full object-cover transition-all duration-300 hover:scale-[1.02]"
-      alt="Prompt"
+      className="w-full h-full object-contain md:object-cover transition-all duration-300 hover:scale-[1.01]"
+      alt="Referência do Prompt"
       referrerPolicy="no-referrer"
       onError={() => {
         console.warn(`Failed to load prompt image from link: ${src}`);

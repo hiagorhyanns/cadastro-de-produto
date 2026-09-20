@@ -424,7 +424,7 @@ export function VtexBestSellersTab() {
       </div>
 
       {/* Guide explaining where it goes and how it operates */}
-      <Card className="border-none shadow-md rounded-xl bg-gradient-to-br from-blue-50/20 to-slate-50/40 border border-blue-100/50 relative">
+      <Card className="border-0 shadow-none rounded-xl bg-white relative">
         <CardHeader className="p-8 pb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-100">
@@ -446,7 +446,7 @@ export function VtexBestSellersTab() {
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-semibold pb-2">
-            <div className="p-4 bg-white/70 rounded-xl border border-slate-100/60 shadow-sm space-y-2">
+            <div className="p-4 bg-slate-50 rounded-xl space-y-2">
               <h4 className="text-[10px] font-black uppercase tracking-wider text-blue-600 flex items-center gap-1.5">
                 <Badge variant="outline" className="bg-blue-50 text-blue-600 border-none px-1.5 py-0">1</Badge> No Admin VTEX:
               </h4>
@@ -454,7 +454,7 @@ export function VtexBestSellersTab() {
                 Vá em <strong className="text-slate-700">Pedidos &gt; Todos os pedidos</strong>. Aplique os filtros de período que deseja analisar e clique em <strong className="text-slate-700">Exportar</strong> no canto superior. Baixe o arquivo recebido no e-mail.
               </p>
             </div>
-            <div className="p-4 bg-white/70 rounded-xl border border-slate-100/60 shadow-sm space-y-2">
+            <div className="p-4 bg-slate-50 rounded-xl space-y-2">
               <h4 className="text-[10px] font-black uppercase tracking-wider text-emerald-600 flex items-center gap-1.5">
                 <Badge variant="outline" className="bg-emerald-50 text-emerald-600 border-none px-1.5 py-0">2</Badge> Colunas de Cálculo:
               </h4>
@@ -471,7 +471,7 @@ export function VtexBestSellersTab() {
       </Card>
 
       {/* Selector of month-by-month VTEX Best Sellers */}
-      <Card className="border-none shadow-md rounded-2xl bg-white overflow-hidden border border-slate-100">
+      <Card className="border-0 shadow-none rounded-2xl bg-white overflow-hidden">
         <CardContent className="p-6 space-y-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-slate-100 pb-3">
             <div>
@@ -526,7 +526,7 @@ export function VtexBestSellersTab() {
       </Card>
 
       {/* Upload layout block */}
-      <Card className="border-none shadow-xl rounded-2xl bg-white overflow-hidden">
+      <Card className="border-0 shadow-none rounded-2xl bg-white overflow-hidden">
         <CardContent className="p-8 space-y-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="space-y-1 text-center sm:text-left">
@@ -616,7 +616,7 @@ export function VtexBestSellersTab() {
           
           {/* Summary counters cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Card className="border-none shadow-sm rounded-xl bg-white">
+            <Card className="border-0 shadow-none rounded-xl bg-white">
               <CardContent className="p-6 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
                   <Package className="w-6 h-6" />
@@ -628,7 +628,7 @@ export function VtexBestSellersTab() {
               </CardContent>
             </Card>
 
-            <Card className="border-none shadow-sm rounded-xl bg-white">
+            <Card className="border-0 shadow-none rounded-xl bg-white">
               <CardContent className="p-6 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
                   <Activity className="w-6 h-6" />
@@ -642,7 +642,7 @@ export function VtexBestSellersTab() {
               </CardContent>
             </Card>
 
-            <Card className="border-none shadow-sm rounded-xl bg-white">
+            <Card className="border-0 shadow-none rounded-xl bg-white">
               <CardContent className="p-6 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 shrink-0">
                   <FileSpreadsheet className="w-6 h-6" />
@@ -658,7 +658,7 @@ export function VtexBestSellersTab() {
           </div>
 
           {/* Ranking Table with full specifications */}
-          <Card className="border-none shadow-xl rounded-2xl bg-white overflow-hidden">
+          <Card className="border-0 shadow-none rounded-2xl bg-white overflow-hidden">
             <CardHeader className="p-8 pb-4 border-b border-slate-50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div>
                 <CardTitle className="text-base font-black uppercase tracking-tight flex items-center gap-2">
@@ -672,8 +672,7 @@ export function VtexBestSellersTab() {
               {/* Filtering input bar */}
               <div className="relative w-full md:w-80">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <Input 
-                  placeholder="Filtrar por SKU ou nome..."
+                <Input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 h-10 bg-slate-50/50 border-slate-100 hover:border-slate-200 focus:bg-white text-xs font-semibold rounded-xl"

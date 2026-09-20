@@ -532,8 +532,56 @@ const formatDate = (timestamp?: number) => {
   return `${day}/${month}/${year}`;
 };
 
+const VALID_SUBTABS: SubTab[] = ['treinamento', 'produto', 'acessos', 'erp', 'any', 'ftp', 'pc', 'monitor', 'produtividade', 'ebooks', 'vtex'];
+const SUBTAB_STORAGE_KEY = 'cpa_treinamento_active_subtab';
+
+function getStoredSubTab(): SubTab {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('tab') === 'treinamento') {
+      const urlSub = params.get('sub') as SubTab;
+      if (urlSub && VALID_SUBTABS.includes(urlSub)) {
+        return urlSub;
+      }
+    }
+    const cached = localStorage.getItem(SUBTAB_STORAGE_KEY) as SubTab;
+    if (cached && VALID_SUBTABS.includes(cached)) {
+      return cached;
+    }
+  } catch (e) {
+    console.error('Error reading stored subtab:', e);
+  }
+  return 'treinamento';
+}
+
 export function TreinamentoTab() {
-  const [activeSubTab, setActiveSubTab] = React.useState<SubTab>('treinamento');
+  const [activeSubTab, setActiveSubTabState] = React.useState<SubTab>(getStoredSubTab);
+
+  const setActiveSubTab = React.useCallback((sub: SubTab) => {
+    setActiveSubTabState(sub);
+    try {
+      localStorage.setItem(SUBTAB_STORAGE_KEY, sub);
+      const url = new URL(window.location.href);
+      if (url.searchParams.get('tab') === 'treinamento') {
+        url.searchParams.set('sub', sub);
+        window.history.replaceState({}, '', url.toString());
+      }
+    } catch (e) {
+      console.error('Error saving subtab:', e);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    try {
+      const url = new URL(window.location.href);
+      if (url.searchParams.get('tab') === 'treinamento' && !url.searchParams.has('sub')) {
+        url.searchParams.set('sub', activeSubTab);
+        window.history.replaceState({}, '', url.toString());
+      }
+    } catch (e) {
+      console.error('Error syncing subtab to URL:', e);
+    }
+  }, [activeSubTab]);
   
   // States for each section
   const [steps, setSteps] = React.useState<TrainingStepData[]>([]);
@@ -596,13 +644,21 @@ export function TreinamentoTab() {
   // UI states
   const [expandedImprovements, setExpandedImprovements] = React.useState<Record<string, boolean>>({});
   const [pcChecks, setPcChecks] = React.useState<Record<string, boolean>>(() => {
-    const saved = localStorage.getItem('treinamento_pc_checks');
-    return saved ? JSON.parse(saved) : {};
+    try {
+      const saved = localStorage.getItem('treinamento_pc_checks');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
   });
 
   const [performanceContent, setPerformanceContent] = React.useState<string>(() => {
-    const saved = localStorage.getItem('treinamento_performance_content');
-    return saved ?? DEFAULT_PERFORMANCE_TEXT;
+    try {
+      const saved = localStorage.getItem('treinamento_performance_content');
+      return saved ?? DEFAULT_PERFORMANCE_TEXT;
+    } catch {
+      return DEFAULT_PERFORMANCE_TEXT;
+    }
   });
   const [showPerformanceModal, setShowPerformanceModal] = React.useState(false);
   const [isEditingPerformance, setIsEditingPerformance] = React.useState(false);
@@ -1089,7 +1145,7 @@ export function TreinamentoTab() {
     <div className="flex flex-col md:flex-row gap-6 min-h-[600px]">
       {/* Sidebar Menu */}
       <aside className="w-full md:w-64 shrink-0">
-        <Card className="border-none shadow-sm rounded-xl overflow-hidden bg-white pt-0 pb-4 py-0">
+        <Card className="border-0 shadow-none rounded-xl overflow-hidden bg-white pt-0 pb-4 py-0">
           <div className="bg-blue-600 p-4">
             <h3 className="text-white font-black uppercase tracking-tighter text-sm flex items-center gap-2">
               <GraduationCap className="w-4 h-4" />
@@ -1156,7 +1212,7 @@ export function TreinamentoTab() {
                 <Reorder.Group axis="y" values={steps} onReorder={handleReorderSteps} className="space-y-4">
                   {steps.map((step) => (
                     <Reorder.Item key={step.id} value={step} className="focus:outline-none">
-                      <Card className="border-slate-200 shadow-sm hover:shadow-md transition-all group overflow-hidden bg-white">
+                      <Card className="border-0 shadow-none transition-all group overflow-hidden bg-white rounded-xl">
                         <div className="p-4 md:p-6 flex gap-6">
                           {/* Drag Handle & Position Indicator */}
                           <div className="flex flex-col items-center gap-2">
@@ -1278,7 +1334,6 @@ export function TreinamentoTab() {
                   <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <Input
                     type="text"
-                    placeholder="Pesquisar produto..."
                     value={productSearch}
                     onChange={(e) => setProductSearch(e.target.value)}
                     className="pl-10 h-11 bg-white border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 font-medium w-full"
@@ -1307,7 +1362,7 @@ export function TreinamentoTab() {
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {filteredProductRules.map((rule) => (
-                        <Card key={rule.id} className="border-none shadow-sm h-full bg-white rounded-xl overflow-hidden hover:shadow-md transition-all flex flex-col justify-between">
+                        <Card key={rule.id} className="border-0 shadow-none h-full bg-white rounded-xl overflow-hidden transition-all flex flex-col justify-between">
                           <div className="p-4 space-y-2">
                             {/* Product Info main row */}
                             <div className="flex gap-4 items-start">
@@ -1384,7 +1439,7 @@ export function TreinamentoTab() {
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {productRules.map((rule) => (
-                        <Card key={rule.id} className="border-none shadow-sm h-full bg-white rounded-xl overflow-hidden hover:shadow-md transition-all flex flex-col justify-between">
+                        <Card key={rule.id} className="border-0 shadow-none h-full bg-white rounded-xl overflow-hidden transition-all flex flex-col justify-between">
                           <div className="p-4 space-y-2">
                             {/* Product Info main row */}
                             <div className="flex gap-4 items-start">
@@ -1474,7 +1529,7 @@ export function TreinamentoTab() {
                   </Button>
                 </div>
 
-                <Card className="border-none shadow-sm overflow-hidden bg-white">
+                <Card className="border-0 shadow-none overflow-hidden bg-white">
                   <div className="divide-y divide-slate-100">
                     {accesses.length === 0 ? (
                       <div className="p-8 text-center text-slate-400">
@@ -1566,7 +1621,7 @@ export function TreinamentoTab() {
                       </div>
 
                       {data ? (
-                        <Card className="border-none shadow-xl overflow-hidden bg-white">
+                        <Card className="border-0 shadow-none overflow-hidden bg-white">
                           <CardContent className="p-8 space-y-6">
                              <div className="prose prose-slate max-w-none">
                                 <div className="text-slate-700 whitespace-pre-wrap font-medium leading-relaxed">
@@ -1674,7 +1729,7 @@ export function TreinamentoTab() {
 
                   return (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                      <Card className="border-none shadow-sm bg-blue-600 text-white">
+                      <Card className="border-0 shadow-none bg-blue-600 text-white">
                         <CardContent className="p-4 flex flex-col gap-1">
                           <div className="flex items-center gap-2 opacity-80">
                             <Activity className="w-4 h-4" />
@@ -1683,7 +1738,7 @@ export function TreinamentoTab() {
                           <div className="text-2xl font-black">{totalActivated}</div>
                         </CardContent>
                       </Card>
-                      <Card className="border-none shadow-sm bg-white">
+                      <Card className="border-0 shadow-none bg-white">
                         <CardContent className="p-4 flex flex-col gap-1">
                           <div className="flex items-center gap-2 text-slate-400">
                             <TrendingUp className="w-4 h-4" />
@@ -1692,7 +1747,7 @@ export function TreinamentoTab() {
                           <div className="text-2xl font-black text-slate-900">{avgDaily}</div>
                         </CardContent>
                       </Card>
-                      <Card className="border-none shadow-sm bg-white">
+                      <Card className="border-0 shadow-none bg-white">
                         <CardContent className="p-4 flex flex-col gap-1">
                           <div className="flex items-center gap-2 text-slate-400">
                             <Target className="w-4 h-4 text-blue-600" />
@@ -1701,7 +1756,7 @@ export function TreinamentoTab() {
                           <div className="text-2xl font-black text-slate-900">4</div>
                         </CardContent>
                       </Card>
-                      <Card className="border-none shadow-sm bg-white">
+                      <Card className="border-0 shadow-none bg-white">
                         <CardContent className="p-4 flex flex-col gap-1">
                           <div className="flex items-center gap-2 text-slate-400">
                             <CheckCircle2 className="w-4 h-4 text-green-600" />
@@ -1710,7 +1765,7 @@ export function TreinamentoTab() {
                           <div className="text-2xl font-black text-green-600">{daysAboveGoal} <span className="text-[10px] font-bold text-slate-400 uppercase ml-1">dias</span></div>
                         </CardContent>
                       </Card>
-                      <Card className="border-none shadow-sm bg-white">
+                      <Card className="border-0 shadow-none bg-white">
                         <CardContent className="p-4 flex flex-col gap-1">
                           <div className="flex items-center gap-2 text-slate-400">
                             <AlertCircle className="w-4 h-4 text-orange-600" />
@@ -1724,7 +1779,7 @@ export function TreinamentoTab() {
                 })()}
 
                 {/* Graph Area */}
-                <Card className="border-none shadow-sm bg-white overflow-hidden">
+                <Card className="border-0 shadow-none bg-white overflow-hidden">
                   <CardHeader className="border-b border-slate-50 flex flex-row items-center justify-between py-4">
                     <div>
                       <CardTitle className="text-sm font-black uppercase tracking-tight">Atividade do Mês</CardTitle>
@@ -1777,7 +1832,7 @@ export function TreinamentoTab() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   {/* Form Card */}
-                  <Card id="monitor-form" className="lg:col-span-1 border-none shadow-sm bg-white h-fit sticky top-6">
+                  <Card id="monitor-form" className="lg:col-span-1 border-0 shadow-none bg-white h-fit sticky top-6 rounded-lg">
                     <CardHeader className="border-b border-slate-50 py-4">
                       <h3 className="font-black text-xs uppercase tracking-widest flex items-center gap-2">
                         <Plus className="w-4 h-4 text-blue-600" />
@@ -1810,7 +1865,6 @@ export function TreinamentoTab() {
                         <Label htmlFor="note" className="text-[10px] font-black uppercase tracking-widest text-slate-500">Observação (Opcional)</Label>
                         <Textarea 
                           id="note" 
-                          placeholder="Ex: Treinamento novo colaborador..."
                           value={newRecord.note}
                           onChange={(e) => setNewRecord(p => ({ ...p, note: e.target.value }))}
                           className="min-h-[80px] text-xs font-medium"
@@ -1831,7 +1885,7 @@ export function TreinamentoTab() {
                   </Card>
 
                   {/* List Card */}
-                  <Card className="lg:col-span-2 border-none shadow-sm bg-white overflow-hidden h-fit">
+                  <Card className="lg:col-span-2 border-0 shadow-none bg-white overflow-hidden h-fit rounded-lg">
                     <CardHeader className="border-b border-slate-50 py-4">
                       <h3 className="font-black text-xs uppercase tracking-widest flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-slate-400" />
@@ -1919,10 +1973,10 @@ export function TreinamentoTab() {
                     return (
                       <Card 
                         key={item.id} 
-                        className={`border-2 transition-all group relative bg-white overflow-hidden ${
+                        className={`border-0 shadow-none transition-all group relative bg-white overflow-hidden rounded-xl ${
                           item.completed 
-                            ? 'opacity-70 border-green-100 bg-slate-50/50 grayscale-[0.2]' 
-                            : 'border-transparent shadow-sm hover:shadow-md'
+                            ? 'opacity-70 bg-slate-50/50 grayscale-[0.2]' 
+                            : ''
                         }`}
                       >
                          {/* Completion Checkmark */}
@@ -2008,7 +2062,7 @@ export function TreinamentoTab() {
                     { id: 'ssd', label: 'Armazenamento', value: 'SSD de no mínimo 240GB', icon: Wind, desc: 'Aumenta significativamente a velocidade de abertura do sistema e arquivos.' },
                     { id: 'monitor', label: 'Monitor', value: 'Recomendado: 2 Monitores (Full HD)', icon: Monitor, desc: 'Recomendamos o uso de 2 monitores para melhorar a produtividade. Ajuda a copiar e conferir informações com mais agilidade entre ERP, catálogos e marketplaces.' }
                   ].map((item, idx) => (
-                    <Card key={item.id} className="border border-slate-200 shadow-sm bg-white overflow-hidden group relative">
+                    <Card key={item.id} className="border-0 shadow-none bg-white overflow-hidden group relative rounded-xl">
                       {/* Checkbox persistence */}
                       <button 
                         onClick={() => togglePcCheck(item.id)}
@@ -2085,7 +2139,7 @@ export function TreinamentoTab() {
                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                        <Label className="uppercase text-[10px] font-black tracking-widest text-slate-500">Nome do Passo</Label>
-                       <Input value={editingStep.name} onChange={e => setEditingStep({...editingStep, name: e.target.value})} placeholder="Ex: Pesquisa de concorrentes" />
+                       <Input value={editingStep.name} onChange={e => setEditingStep({...editingStep, name: e.target.value})} />
                     </div>
                     <div className="space-y-2">
                        <Label className="uppercase text-[10px] font-black tracking-widest text-slate-500">Posição</Label>
@@ -2094,11 +2148,11 @@ export function TreinamentoTab() {
                  </div>
                  <div className="space-y-2">
                     <Label className="uppercase text-[10px] font-black tracking-widest text-slate-500">URL da Imagem</Label>
-                    <Input value={editingStep.imageUrl || ''} onChange={e => setEditingStep({...editingStep, imageUrl: e.target.value})} placeholder="https://..." />
+                    <Input value={editingStep.imageUrl || ''} onChange={e => setEditingStep({...editingStep, imageUrl: e.target.value})} />
                  </div>
                  <div className="space-y-2">
                     <Label className="uppercase text-[10px] font-black tracking-widest text-slate-500">Explicação</Label>
-                    <Textarea value={editingStep.explanation} onChange={e => setEditingStep({...editingStep, explanation: e.target.value})} rows={6} placeholder="Descreva o processo detalhadamente..." />
+                    <Textarea value={editingStep.explanation} onChange={e => setEditingStep({...editingStep, explanation: e.target.value})} rows={6} />
                  </div>
 
                  {/* Improvements Edit list */}
@@ -2121,7 +2175,7 @@ export function TreinamentoTab() {
                                const imps = [...(editingStep.improvements || [])];
                                imps[i].detail = e.target.value;
                                setEditingStep({...editingStep, improvements: imps});
-                            }} placeholder="Detalhe da melhoria..." className="flex-1" />
+                            }} className="flex-1" />
                             <Button variant="ghost" size="icon" onClick={() => setEditingStep({...editingStep, improvements: editingStep.improvements?.filter((_, idx) => idx !== i)})} className="text-red-400 hover:text-red-600"><Trash2 className="w-4 h-4" /></Button>
                          </div>
                        ))}
@@ -2149,7 +2203,7 @@ export function TreinamentoTab() {
                   <div className="space-y-4">
                      <div className="space-y-2">
                         <Label className="uppercase text-[10px] font-black tracking-widest text-slate-500">Nome do Sistema/Ferramenta</Label>
-                        <Input value={editingAccess.toolName} onChange={e => setEditingAccess({...editingAccess, toolName: e.target.value})} placeholder="Ex: Login Sankhya" />
+                        <Input value={editingAccess.toolName} onChange={e => setEditingAccess({...editingAccess, toolName: e.target.value})} />
                      </div>
                      <div className="flex items-center gap-2">
                         <input type="checkbox" checked={editingAccess.hasAccess} onChange={e => setEditingAccess({...editingAccess, hasAccess: e.target.checked})} className="w-4 h-4 text-blue-600 rounded" />
@@ -2184,7 +2238,7 @@ export function TreinamentoTab() {
                  </div>
                  <div className="space-y-2 pt-4">
                     <Label className="uppercase text-[10px] font-black tracking-widest text-blue-600">Conteúdo Detalhado (Texto e Links)</Label>
-                    <Textarea value={editingSystem.content} onChange={e => setEditingSystem({...editingSystem, content: e.target.value})} rows={12} placeholder="Insira aqui o guia de uso, links de acesso e URLs de imagens para pré-visualização..." className="font-mono text-sm" />
+                    <Textarea value={editingSystem.content} onChange={e => setEditingSystem({...editingSystem, content: e.target.value})} rows={12} className="font-mono text-sm" />
                  </div>
               </div>
               <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
@@ -2207,15 +2261,15 @@ export function TreinamentoTab() {
               <div className="flex-1 p-6 overflow-y-auto space-y-4">
                  <div className="space-y-2">
                     <Label className="uppercase text-[10px] font-black tracking-widest text-slate-500">Título da melhoria</Label>
-                    <Input value={editingProductivity.title} onChange={e => setEditingProductivity({...editingProductivity, title: e.target.value})} placeholder="Ex: Segundo monitor..." />
+                    <Input value={editingProductivity.title} onChange={e => setEditingProductivity({...editingProductivity, title: e.target.value})} />
                  </div>
                  <div className="space-y-2">
                     <Label className="uppercase text-[10px] font-black tracking-widest text-slate-500">Descrição</Label>
-                    <Textarea value={editingProductivity.description} onChange={e => setEditingProductivity({...editingProductivity, description: e.target.value})} rows={4} placeholder="Descreva como isso ajuda no cadastro..." />
+                    <Textarea value={editingProductivity.description} onChange={e => setEditingProductivity({...editingProductivity, description: e.target.value})} rows={4} />
                  </div>
                  <div className="space-y-2">
                     <Label className="uppercase text-[10px] font-black tracking-widest text-slate-500">Observação (Opcional)</Label>
-                    <Input value={editingProductivity.note} onChange={e => setEditingProductivity({...editingProductivity, note: e.target.value})} placeholder="Dica extra ou cuidado importante..." />
+                    <Input value={editingProductivity.note} onChange={e => setEditingProductivity({...editingProductivity, note: e.target.value})} />
                  </div>
                  <div className="space-y-2">
                     <Label className="uppercase text-[10px] font-black tracking-widest text-slate-500">Ícone</Label>
@@ -2275,7 +2329,6 @@ export function TreinamentoTab() {
                         value={tempPerformanceContent} 
                         onChange={e => setTempPerformanceContent(e.target.value)} 
                         className="flex-1 min-h-[400px] font-mono text-sm shadow-inner bg-white whitespace-pre-wrap"
-                        placeholder="Use # para títulos, ** para negrito, * para itálico..."
                       />
                    </div>
                  ) : (
@@ -2326,7 +2379,6 @@ export function TreinamentoTab() {
                         value={editingRule.requiredInfo} 
                         onChange={e => setEditingRule({...editingRule, requiredInfo: e.target.value})} 
                         rows={6} 
-                        placeholder="Insira as regras obrigatórias que valem para todos os produtos gerais..." 
                       />
                     </div>
                     <div className="space-y-2">
@@ -2335,7 +2387,6 @@ export function TreinamentoTab() {
                         value={editingRule.forbiddenInfo} 
                         onChange={e => setEditingRule({...editingRule, forbiddenInfo: e.target.value})} 
                         rows={6} 
-                        placeholder="Insira as informações de cadastro proibidas para todos os produtos gerais..." 
                       />
                     </div>
                   </>
@@ -2452,7 +2503,6 @@ export function TreinamentoTab() {
                   <Input 
                     value={imageUrlInput} 
                     onChange={e => setImageUrlInput(e.target.value)} 
-                    placeholder="https://exemplo.com/imagem.jpg" 
                     className="w-full"
                     autoFocus
                   />

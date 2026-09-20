@@ -212,8 +212,7 @@ export function SEOManagerTab() {
         <div className="relative w-full md:max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input 
-            ref={searchInputRef}
-            placeholder="Pesquisar SEO..." 
+            ref={searchInputRef} 
             className="pl-10 pr-10 h-11 border-slate-200 rounded-lg bg-white shadow-sm"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -441,7 +440,6 @@ export function SEOManagerTab() {
                       <Input 
                         value={currentSEO.type}
                         onChange={(e) => setCurrentSEO({ ...currentSEO, type: e.target.value })}
-                        placeholder="Ex: Titulo, Imagem, Conteudo"
                         className="h-11 border-slate-200 focus:border-blue-500 rounded-lg shadow-sm"
                       />
                     </div>
@@ -454,7 +452,7 @@ export function SEOManagerTab() {
                         onValueChange={(val: any) => setCurrentSEO({ ...currentSEO, status: val })}
                       >
                         <SelectTrigger className="h-11 border-slate-200 focus:border-blue-500 rounded-lg shadow-sm">
-                          <SelectValue placeholder="Selecione o status" />
+                          <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="feito">
@@ -487,7 +485,6 @@ export function SEOManagerTab() {
                     <Textarea 
                       value={currentSEO.text}
                       onChange={(e) => setCurrentSEO({ ...currentSEO, text: e.target.value })}
-                      placeholder="Insira o texto do SEO aqui..."
                       className="min-h-[200px] border-slate-200 focus:border-blue-500 rounded-lg resize-none shadow-sm"
                     />
                   </div>

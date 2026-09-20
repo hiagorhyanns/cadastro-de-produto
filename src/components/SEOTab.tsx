@@ -8,7 +8,6 @@ import {
   AlertCircle,
   Loader2,
   Tag,
-  Target,
   Zap,
   Lightbulb,
   ShoppingBag,
@@ -18,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -60,7 +59,7 @@ export function SEOTab({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+    <div className={`w-full mx-auto ${seoResult || seoLoading ? 'max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-start' : 'max-w-2xl'}`}>
       {/* Search Result Banner */}
       <AnimatePresence>
         {seoCopyAlert && (
@@ -83,25 +82,13 @@ export function SEOTab({
         animate={{ x: 0, opacity: 1 }}
         className="space-y-6"
       >
-        <Card className="border-slate-200 shadow-sm overflow-hidden">
-          <CardHeader className="bg-slate-50 border-b border-slate-100 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-200">
-                <Search className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <CardTitle className="text-lg font-black uppercase tracking-tight text-slate-900">Pesquisa e SEO</CardTitle>
-                <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Otimize o alcance nos marketplaces</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
+        <Card className="border-0 shadow-none bg-white overflow-hidden">
           <CardContent className="p-6">
             <form onSubmit={handleSEOGenerate} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Nome do Produto</Label>
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">PRODUTO</Label>
                   <Input 
-                    placeholder="Ex: Forno Turbo"
                     value={seoFormData.name}
                     onChange={(e) => setSeoFormData({...seoFormData, name: e.target.value})}
                     className="h-11 border-slate-200 focus:border-blue-500 rounded-lg shadow-sm"
@@ -110,7 +97,6 @@ export function SEOTab({
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Modelo</Label>
                   <Input 
-                    placeholder="Ex: FTT-240"
                     value={seoFormData.model}
                     onChange={(e) => setSeoFormData({...seoFormData, model: e.target.value})}
                     className="h-11 border-slate-200 focus:border-blue-500 rounded-lg shadow-sm"
@@ -122,16 +108,14 @@ export function SEOTab({
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Marca</Label>
                   <Input 
-                    placeholder="Ex: Tedesco"
                     value={seoFormData.brand}
                     onChange={(e) => setSeoFormData({...seoFormData, brand: e.target.value})}
                     className="h-11 border-slate-200 focus:border-blue-500 rounded-lg shadow-sm"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Voltagem / Tensão</Label>
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">VOLTAGEM</Label>
                   <Input 
-                    placeholder="Ex: 220V Mono"
                     value={seoFormData.voltage}
                     onChange={(e) => setSeoFormData({...seoFormData, voltage: e.target.value})}
                     className="h-11 border-slate-200 focus:border-blue-500 rounded-lg shadow-sm"
@@ -140,22 +124,11 @@ export function SEOTab({
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Diferenciais (opcional)</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">DIFERENCIAIS</Label>
                 <Textarea 
-                  placeholder="Ex: Inox escovado, controle digital, 5 esteiras..."
                   value={seoFormData.differentials}
                   onChange={(e) => setSeoFormData({...seoFormData, differentials: e.target.value})}
                   className="min-h-[80px] border-slate-200 focus:border-blue-500 rounded-lg resize-none shadow-sm"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Título Atual (se houver)</Label>
-                <Input 
-                  placeholder="Título para referência..."
-                  value={seoFormData.currentTitle}
-                  onChange={(e) => setSeoFormData({...seoFormData, currentTitle: e.target.value})}
-                  className="h-11 border-slate-200 focus:border-blue-500 rounded-lg shadow-sm"
                 />
               </div>
 
@@ -180,28 +153,12 @@ export function SEOTab({
             </form>
           </CardContent>
         </Card>
-
-        {/* Benefits cards when empty */}
-        {!seoResult && !seoLoading && (
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100 flex flex-col items-center text-center gap-2">
-              <ShoppingBag className="w-6 h-6 text-blue-500" />
-              <p className="text-[10px] font-black uppercase tracking-widest text-blue-900">Fidelidade Marketplace</p>
-              <p className="text-[9px] font-medium text-blue-700">Títulos prontos para ML e Google Shopping.</p>
-            </div>
-            <div className="p-4 bg-orange-50/50 rounded-xl border border-orange-100 flex flex-col items-center text-center gap-2">
-              <Target className="w-6 h-6 text-orange-500" />
-              <p className="text-[10px] font-black uppercase tracking-widest text-orange-900">CTR Elevado</p>
-              <p className="text-[9px] font-medium text-orange-700">Palavras-chave que convertem mais cliques.</p>
-            </div>
-          </div>
-        )}
       </motion.div>
 
       <div className="space-y-6">
         {seoLoading ? (
           <div className="space-y-6">
-            <Card className="border-slate-200 overflow-hidden">
+            <Card className="border-0 shadow-none bg-white overflow-hidden">
               <div className="p-8 flex flex-col items-center justify-center gap-4 text-center">
                 <div className="relative">
                   <motion.div 
@@ -233,7 +190,7 @@ export function SEOTab({
           >
             {/* Main Result Cards */}
             <div className="space-y-4">
-              <Card className="border-blue-200 bg-white shadow-lg shadow-blue-50 overflow-hidden relative group">
+              <Card className="border-0 shadow-none bg-white overflow-hidden relative group">
                 <div className="absolute top-0 right-0 p-3">
                   <Badge className="bg-blue-600 text-white font-black text-[8px] uppercase tracking-widest px-3 py-1 rotate-3 shadow-lg group-hover:rotate-0 transition-transform">TOP PERFORMER</Badge>
                 </div>
@@ -265,7 +222,7 @@ export function SEOTab({
                 </CardContent>
               </Card>
 
-              <Card className="border-slate-200 bg-white shadow-sm overflow-hidden relative group">
+              <Card className="border-0 shadow-none bg-white overflow-hidden relative group">
                 <CardHeader className="pb-3 border-b border-slate-50 bg-slate-50/50">
                   <div className="flex items-center gap-2">
                     <ShoppingBag className="w-4 h-4 text-slate-400" />
@@ -296,7 +253,7 @@ export function SEOTab({
 
             {/* Insight Analysis Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card className="border-slate-100 bg-white/50 shadow-sm">
+              <Card className="border-0 shadow-none bg-white">
                 <CardHeader className="p-4 pb-0 flex flex-row items-center justify-between">
                   <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Palavras Concorrência</span>
                   <ExternalLink className="w-3 h-3 text-slate-300" />
@@ -312,7 +269,7 @@ export function SEOTab({
                 </CardContent>
               </Card>
 
-              <Card className="border-orange-100 bg-orange-50/20 shadow-sm">
+              <Card className="border-0 shadow-none bg-white">
                 <CardHeader className="p-4 pb-0 flex flex-row items-center justify-between">
                   <span className="text-[9px] font-black uppercase tracking-widest text-orange-900/40">Destaques Únicos</span>
                   <Zap className="w-3 h-3 text-orange-300" />
@@ -330,7 +287,7 @@ export function SEOTab({
             </div>
 
             {/* Intent keywords */}
-            <Card className="border-slate-100 bg-white shadow-sm overflow-hidden">
+            <Card className="border-0 shadow-none bg-white overflow-hidden">
                <div className="px-4 py-3 bg-slate-50/50 border-b border-slate-100 flex items-center gap-2">
                  <Tag className="w-3.5 h-3.5 text-blue-500" />
                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Intenções de Busca (SEO On-page)</span>
@@ -372,19 +329,7 @@ export function SEOTab({
               </div>
             </div>
           </motion.div>
-        ) : (
-          <div className="h-full min-h-[400px] flex flex-col items-center justify-center text-center p-8 bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl group">
-            <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center border border-slate-100 shadow-sm mb-6 group-hover:scale-110 transition-transform duration-500">
-              <Search className="w-10 h-10 text-slate-200 group-hover:text-blue-200 transition-colors" />
-            </div>
-            <div className="max-w-xs space-y-2">
-              <h3 className="font-black uppercase tracking-tight text-slate-400">Aguardando Dados</h3>
-              <p className="text-[11px] text-slate-400 font-medium leading-relaxed">
-                Preencha os dados técnicos do produto na lateral esquerda e clique em <span className="text-blue-400 font-bold uppercase tracking-widest">Otimizar Título</span> para iniciar a pesquisa.
-              </p>
-            </div>
-          </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

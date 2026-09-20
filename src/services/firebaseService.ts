@@ -83,6 +83,25 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
   throw new Error(JSON.stringify(errInfo));
 }
 
+export function sanitizeFirestoreData<T>(data: T): T {
+  if (data === null || data === undefined) {
+    return null as any;
+  }
+  if (Array.isArray(data)) {
+    return data.map(item => sanitizeFirestoreData(item)) as any;
+  }
+  if (typeof data === 'object' && !(data instanceof Date)) {
+    const cleaned: any = {};
+    for (const [key, value] of Object.entries(data)) {
+      if (value !== undefined) {
+        cleaned[key] = sanitizeFirestoreData(value);
+      }
+    }
+    return cleaned;
+  }
+  return data;
+}
+
 export async function uploadImage(file: File | string, path: string): Promise<string> {
   try {
     let fileToUpload: File | Blob;
@@ -232,7 +251,7 @@ export async function savePrompt(prompt: PromptData) {
   const path = PROMPTS_COLLECTION;
   try {
     const id = prompt.id || uuidv4();
-    const cleanData = { ...prompt, id };
+    const cleanData = sanitizeFirestoreData({ ...prompt, id });
     await setDoc(doc(db, PROMPTS_COLLECTION, id), cleanData);
     return cleanData;
   } catch (error) {
@@ -284,8 +303,9 @@ export async function saveTool(tool: ToolData) {
   const path = TOOLS_COLLECTION;
   try {
     console.log("ITEM 1/6 - SALVANDO NO FIRESTORE:", tool);
-    await setDoc(doc(db, TOOLS_COLLECTION, tool.id), tool);
-    return tool;
+    const cleanData = sanitizeFirestoreData(tool);
+    await setDoc(doc(db, TOOLS_COLLECTION, tool.id), cleanData);
+    return cleanData;
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, path);
   }
@@ -326,7 +346,7 @@ export async function saveSEOItem(item: SEOData) {
   const path = SEO_COLLECTION;
   try {
     const id = item.id || uuidv4();
-    const dataToSave = { ...item, id };
+    const dataToSave = sanitizeFirestoreData({ ...item, id });
     await setDoc(doc(db, SEO_COLLECTION, id), dataToSave);
     return dataToSave;
   } catch (error) {
@@ -377,7 +397,7 @@ export async function saveTrainingStep(step: TrainingStepData) {
   const path = TRAINING_COLLECTION;
   try {
     const id = step.id || uuidv4();
-    const dataToSave = { ...step, id };
+    const dataToSave = sanitizeFirestoreData({ ...step, id });
     await setDoc(doc(db, TRAINING_COLLECTION, id), dataToSave);
     return dataToSave;
   } catch (error) {
@@ -419,7 +439,7 @@ export async function saveAccess(access: AccessData) {
   const path = ACCESSES_COLLECTION;
   try {
     const id = access.id || uuidv4();
-    const dataToSave = { ...access, id };
+    const dataToSave = sanitizeFirestoreData({ ...access, id });
     await setDoc(doc(db, ACCESSES_COLLECTION, id), dataToSave);
     return dataToSave;
   } catch (error) {
@@ -462,7 +482,7 @@ export async function saveMonitorRecord(record: DailyRecord) {
   const path = MONITOR_COLLECTION;
   try {
     const id = record.id || uuidv4();
-    const dataToSave = { ...record, id };
+    const dataToSave = sanitizeFirestoreData({ ...record, id });
     await setDoc(doc(db, MONITOR_COLLECTION, id), dataToSave);
     return dataToSave;
   } catch (error) {
@@ -507,7 +527,7 @@ export async function saveProductivityItem(item: ProductivityData) {
   const path = PRODUCTIVITY_COLLECTION;
   try {
     const id = item.id || uuidv4();
-    const dataToSave = { ...item, id };
+    const dataToSave = sanitizeFirestoreData({ ...item, id });
     await setDoc(doc(db, PRODUCTIVITY_COLLECTION, id), dataToSave);
     return dataToSave;
   } catch (error) {
@@ -552,8 +572,9 @@ export async function getSystemInfo(id: string): Promise<SystemInfoData | null> 
 export async function saveSystemInfo(info: SystemInfoData) {
   const path = SYSTEMS_INFO_COLLECTION;
   try {
-    await setDoc(doc(db, SYSTEMS_INFO_COLLECTION, info.id), info);
-    return info;
+    const dataToSave = sanitizeFirestoreData(info);
+    await setDoc(doc(db, SYSTEMS_INFO_COLLECTION, info.id), dataToSave);
+    return dataToSave;
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, path);
   }
@@ -587,7 +608,7 @@ export async function saveEbook(ebook: EbookData): Promise<EbookData> {
   const path = EBOOKS_COLLECTION;
   try {
     const id = ebook.id || uuidv4();
-    const cleanData = { ...ebook, id };
+    const cleanData = sanitizeFirestoreData({ ...ebook, id });
     await setDoc(doc(db, EBOOKS_COLLECTION, id), cleanData);
     return cleanData as EbookData;
   } catch (error) {
@@ -635,8 +656,9 @@ export async function getProductRules(): Promise<ProductRuleData[]> {
 export async function saveProductRule(rule: ProductRuleData): Promise<ProductRuleData> {
   const path = PRODUCT_RULES_COLLECTION;
   try {
-    await setDoc(doc(db, PRODUCT_RULES_COLLECTION, rule.id), rule);
-    return rule;
+    const cleanData = sanitizeFirestoreData(rule);
+    await setDoc(doc(db, PRODUCT_RULES_COLLECTION, rule.id), cleanData);
+    return cleanData as ProductRuleData;
   } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, path);
     throw error;

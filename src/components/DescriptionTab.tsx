@@ -261,7 +261,7 @@ export const DescriptionTab = ({
           <div className="space-y-8 animate-in fade-in duration-300">
             {/* Educational Guidance Block */}
             {showGuide && (
-              <Card className="border-none shadow-md rounded-lg bg-blue-50/30 border border-blue-100/50 relative group">
+              <Card className="border-0 shadow-none rounded-lg bg-white relative group">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -313,12 +313,11 @@ export const DescriptionTab = ({
             )}
 
             {/* Main Input Card */}
-            <Card className="border-none shadow-xl rounded-lg bg-white overflow-hidden">
+            <Card className="border-0 shadow-none rounded-lg bg-white overflow-hidden">
               <CardContent className="p-8 space-y-6">
                 <div className="space-y-3">
                   <Label className="font-medium text-gray-500 pl-1 tracking-tight">Descrição Completa do Produto</Label>
                   <Textarea 
-                    placeholder="Cole a descrição bruta com todas as características técnicas para ser otimizada comercialmente..."
                     className="h-[300px] min-h-[300px] w-full bg-gray-50/50 border-gray-100 focus:bg-white transition-all rounded-lg p-4 text-sm leading-relaxed overflow-y-auto resize-y"
                     value={originalDesc}
                     onChange={(e) => setOriginalDesc(e.target.value)}
@@ -365,7 +364,7 @@ export const DescriptionTab = ({
             {(rewriteResult || foundWords.length > 0) && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {rewriteResult && (
-                  <Card className="border-none shadow-xl rounded-lg bg-white overflow-hidden">
+                  <Card className="border-0 shadow-none rounded-lg bg-white overflow-hidden">
                     <CardHeader className="p-8 pb-4 border-b border-gray-50">
                       <CardTitle className="text-xs font-black uppercase tracking-widest text-orange-600">Palavras-chave SEO</CardTitle>
                     </CardHeader>
@@ -382,7 +381,7 @@ export const DescriptionTab = ({
                 )}
 
                 {foundWords.length > 0 && (
-                  <Card className="border-none shadow-xl rounded-lg bg-white overflow-hidden">
+                  <Card className="border-0 shadow-none rounded-lg bg-white overflow-hidden">
                     <CardHeader className="p-8 pb-4 border-b border-gray-50">
                       <CardTitle className="text-xs font-black uppercase tracking-widest text-red-500">Termos Restritos Encontrados</CardTitle>
                     </CardHeader>
@@ -423,7 +422,7 @@ export const DescriptionTab = ({
                   className="space-y-8 pb-12"
                 >
                   {/* 1. TEXTO PRINCIPAL (SAÍDA 1 - Completo) */}
-                  <Card className="border-none shadow-2xl shadow-gray-200/40 rounded-lg bg-white overflow-hidden border border-orange-100/50">
+                  <Card className="border-0 shadow-none rounded-lg bg-white overflow-hidden">
                     <CardHeader className="p-10 border-b border-gray-50 bg-gradient-to-r from-orange-50/50 to-white">
                       <div className="flex items-center justify-between gap-4 flex-wrap">
                         <div className="flex items-center gap-3">
@@ -474,7 +473,7 @@ export const DescriptionTab = ({
                   </Card>
 
                   {/* Meta Descrição Google (Type Description) */}
-                  <Card className="border-none shadow-[0_32px_64px_-12px_rgba(0,0,0,0.12)] rounded-lg bg-white overflow-hidden">
+                  <Card className="border-0 shadow-none rounded-lg bg-white overflow-hidden">
                     <CardHeader className="p-10 pb-0">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -528,7 +527,7 @@ export const DescriptionTab = ({
                   </Card>
 
                   {/* Dicas de Conteúdo (Insights) */}
-                  <Card className="border-none shadow-sm rounded-lg bg-slate-50 border border-slate-100 overflow-hidden">
+                  <Card className="border-0 shadow-none rounded-lg bg-white overflow-hidden">
                     <CardHeader className="p-10 pb-6">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center shadow-inner">
@@ -603,7 +602,7 @@ export const DescriptionTab = ({
                         { title: "Benefícios", text: rewriteResult.summary.benefits, icon: Sparkles, color: "text-blue-600", bg: "bg-blue-50" },
                         { title: "Público/Local", text: rewriteResult.summary.target, icon: Target, color: "text-emerald-600", bg: "bg-emerald-50" }
                       ].map((card, i) => (
-                        <Card key={i} className="border-none shadow-sm rounded-lg bg-white hover:shadow-md transition-shadow">
+                        <Card key={i} className="border-0 shadow-none rounded-lg bg-white">
                           <CardHeader className="p-6 pb-2">
                             <div className={`w-8 h-8 ${card.bg} rounded-lg flex items-center justify-center mb-3`}>
                               <card.icon className={`w-4 h-4 ${card.color}`} />
@@ -659,12 +658,11 @@ export const DescriptionTab = ({
         {activeSubTab === "rapido" && (
           <div className="space-y-8 animate-in fade-in duration-300">
             {/* Input Card for Rapido */}
-            <Card className="border-none shadow-xl rounded-lg bg-white overflow-hidden">
+            <Card className="border-0 shadow-none rounded-lg bg-white overflow-hidden">
               <CardContent className="p-8 space-y-6">
                 <div className="space-y-3">
                   <Label className="font-medium text-gray-500 pl-1 tracking-tight">Rascunho de Texto / Dados Básicos do Produto</Label>
                   <Textarea 
-                    placeholder="Ex: Refresqueira de suco industrial com cuba de 15 litros. Termostato ajustável de alta precisão de 2 a 8 graus. Pés com ventosa antiderrapante para total estabilidade reguláveis..."
                     className="h-[180px] min-h-[180px] w-full bg-slate-50/50 border-slate-100 focus:bg-white focus:ring-1 focus:ring-indigo-100 transition-all rounded-lg p-4 text-sm leading-relaxed overflow-y-auto resize-y"
                     value={rapidInput}
                     onChange={(e) => setRapidInput(e.target.value)}
@@ -719,7 +717,7 @@ export const DescriptionTab = ({
                   className="space-y-8 pb-12"
                 >
                   {/* TEXTO SEO RAPIDO CARDS */}
-                  <Card className="border-none shadow-2xl shadow-gray-200/40 rounded-lg bg-white overflow-hidden border border-blue-100/50">
+                  <Card className="border-0 shadow-none rounded-lg bg-white overflow-hidden">
                     <CardHeader className="p-10 border-b border-gray-50 bg-gradient-to-r from-blue-50/50 to-white">
                       <div className="flex items-center justify-between gap-4 flex-wrap">
                         <div className="flex items-center gap-3">

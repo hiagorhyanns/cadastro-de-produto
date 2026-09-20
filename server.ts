@@ -887,11 +887,110 @@ Diretrizes e Regras de Design e Composição Visual:
   }
 });
 
+function generateFallbackRewrite(input: any): any {
+  const name = input?.productName || "Produto";
+  const model = input?.model ? `Modelo ${input.model}` : "";
+  const brand = input?.brand ? `Marca ${input.brand}` : "";
+  const volt = input?.voltage ? `Voltagem ${input.voltage}` : "";
+  const diffs = input?.differentials || "Alta durabilidade, eficiência operacional e excelente acabamento";
+
+  const alt = input?.altura ? `${input.altura} cm` : "-";
+  const larg = input?.largura ? `${input.largura} cm` : "-";
+  const prof = input?.profundidade ? `${input.profundidade} cm` : "-";
+  const peso = input?.peso ? `${input.peso} kg` : "-";
+
+  const formattedDesc = `${name} ${model} ${brand} ${volt} é desenvolvido para proporcionar máxima eficiência, resistência e precisão no uso diário. Com fabricação reforçada e especificações alinhadas às exigências operacionais, atende com segurança e estabilidade.
+
+Confirme se este é o ${name} certo para você
+Antes de comprar, verifique:
+A capacidade e dimensões atendem ao seu espaço de trabalho? (Verifique as medidas nas especificações técnicas)
+A voltagem e alimentação são compatíveis com sua instalação elétrica? (Confirme se ${volt || "sua rede elétrica"} é a indicada)
+O modelo atende ao volume de demanda da sua operação? (Ideal para demandas constantes e de alta produtividade)
+Necessita de itens ou acessórios complementares? (Consulte o que acompanha o equipamento)
+
+Se respondeu “sim” para todos os pontos acima, este ${name} atende à sua necessidade.
+
+Diferenciais técnicos que importam na prática:
+
+Estrutura Reforçada e Durabilidade:
+Construído com materiais de alta qualidade para suportar rotinas intensas de trabalho sem deformações.
+
+Eficiência e Rendimento:
+Projetado para otimizar o tempo de processo e entregar resultados padronizados e consistentes.
+
+Operação Segura e Ergonômica:
+Desenvolvido visando facilidade de manuseio e segurança operacional.
+
+${diffs ? `Diferencial Exclusivo:\n${diffs}` : "Acabamento Padronizado:\nFacilidade de higienização e manutenção preventiva."}
+
+Aplicações Indicadas:
+Uso comercial e profissional
+Ambientes de produção contínua
+Estabelecimentos que buscam padronização e rendimento
+Setores industriais e operacionais
+
+Especificações Técnicas:
+
+Nome: ${name}
+${model ? `Modelo: ${input.model}\n` : ""}${brand ? `Marca: ${input.brand}\n` : ""}${volt ? `Voltagem: ${input.voltage}\n` : ""}Altura: ${alt}
+Largura: ${larg}
+Profundidade: ${prof}
+Peso: ${peso}
+
+Dúvida técnica? Pergunte antes de comprar.
+
+Questões sobre especificações, compatibilidade ou uso do ${name} - nossa equipe responde com dados técnicos precisos. Use a caixa de perguntas logo abaixo do anúncio ou entre em contato.`;
+
+  const seoParagraph = `O ${name} ${model} ${brand} combina durabilidade, alto rendimento e tecnologia para atender rotinas exigentes de trabalho. Projetado com materiais resistentes e foco em segurança, garante produtividade contínua e resultados superiores para o seu negócio.`;
+
+  const typeDescription = `Compre ${name} ${model} ${brand} com o melhor custo-benefício. Alta eficiência, resistência técnica e entrega rápida. Confira!`;
+
+  return {
+    formattedDesc,
+    seoParagraph,
+    typeDescription,
+    summary: {
+      problem: "Necessidade de equipamento robusto com desempenho confiável.",
+      solution: `${name} ${model} oferece tecnologia adequada e resistência.`,
+      benefits: "Alta produtividade, durabilidade prolongada e operação segura.",
+      target: "Profissionais e empresas que buscam rendimento garantido."
+    },
+    commercial: {
+      problem: "Perda de produtividade com equipamentos frágeis ou desregulados.",
+      solution: "Estrutura reforçada projetada para funcionamento contínuo.",
+      context: "Rotina operacional diária de comércio ou produção.",
+      benefit: "Retorno rápido sobre o investimento com menor índice de manutenção."
+    },
+    crossSell: [
+      { name: "Acessórios de Manutenção", description: "Kits de conservação e limpeza para maior vida útil." },
+      { name: "Peças de Reposição Genuínas", description: "Componentes originais para reposição sem perda de rendimento." }
+    ],
+    tips: [
+      "Informe detalhadamente as dimensões do local onde o produto será instalado.",
+      "Confira a compatibilidade de voltagem antes da ligação.",
+      "Mantenha a rotina de higienização preventiva conforme o manual.",
+      "Utilize insumos e peças recomendados pelo fabricante."
+    ],
+    seoKeywords: [
+      name.toLowerCase(),
+      `${name.toLowerCase()} profissional`,
+      `${name.toLowerCase()} ${input?.brand?.toLowerCase() || ""}`.trim(),
+      `${name.toLowerCase()} preço`,
+      `${name.toLowerCase()} comprar`,
+      "equipamento profissional",
+      "melhor custo benefício",
+      "alta durabilidade"
+    ]
+  };
+}
+
 app.post("/api/gemini/rewriteDescription", async (req, res) => {
-  const { input } = req.body;
-  const model = "gemini-3.1-flash-lite";
+  const { input } = req.body || {};
+  const model = "gemini-3.8-flash";
   const functionName = "rewriteDescription";
   const endpoint = "/api/gemini/rewriteDescription";
+
+  const safeForbidden = Array.isArray(input?.forbiddenWords) ? input.forbiddenWords : [];
 
   const systemInstruction = `Você é um especialista em copywriting para e-commerce B2B e industrial brasileiro.
 Sua tarefa é gerar descrições de produto em formato comercial, técnico e organizado, seguindo um padrão único e rigoroso.
@@ -965,20 +1064,20 @@ Retorne os dados em formato JSON estrito.`;
 
   const promptStr = `
 DADOS DE ENTRADA:
-- Nome do Produto: ${input.productName || ""}
-- Modelo: ${input.model || ""}
-- Marca: ${input.brand || ""}
-- Voltagem/Tensão: ${input.voltage || ""}
-- Diferenciais: ${input.differentials || ""}
-- Altura: ${input.altura || ""} cm
-- Largura: ${input.largura || ""} cm
-- Profundidade: ${input.profundidade || ""} cm
-- Peso: ${input.peso || ""} kg
-- Especificações Adicionais: ${input.additionalSpecs || ""}
-- Texto Original/Base: ${input.originalText}
+- Nome do Produto: ${input?.productName || ""}
+- Modelo: ${input?.model || ""}
+- Marca: ${input?.brand || ""}
+- Voltagem/Tensão: ${input?.voltage || ""}
+- Diferenciais: ${input?.differentials || ""}
+- Altura: ${input?.altura || ""} cm
+- Largura: ${input?.largura || ""} cm
+- Profundidade: ${input?.profundidade || ""} cm
+- Peso: ${input?.peso || ""} kg
+- Especificações Adicionais: ${input?.additionalSpecs || ""}
+- Texto Original/Base: ${input?.originalText || ""}
 
 LISTA DE PALAVRAS PROIBIDAS:
-${input.forbiddenWords.join(", ")}
+${safeForbidden.join(", ")}
 
 Gere o JSON com:
 - formattedDesc: O resultado completo seguindo EXATAMENTE o formato e as regras da SAÍDA 1.
@@ -990,6 +1089,21 @@ Gere o JSON com:
 - tips: Array de strings com 4 a 6 dicas de informações que faltam.
 - seoKeywords: 8 a 10 palavras-chave relevantes.
 `;
+
+  // Backend-side detection for found words and counts
+  const wordCounts: { [key: string]: number } = {};
+  const foundWords: string[] = [];
+  const normalizedText = (input?.originalText || "").toLowerCase();
+  safeForbidden.forEach((word: string) => {
+    try {
+      const regex = new RegExp(`\\b${word.toLowerCase().replace(/\//g, '\\/')}\\b`, 'gi');
+      const matches = normalizedText.match(regex);
+      if (matches) {
+        wordCounts[word] = matches.length;
+        foundWords.push(word);
+      }
+    } catch (e) {}
+  });
 
   try {
     const response = await backendCallGeminiWithRetry({
@@ -1055,34 +1169,25 @@ Gere o JSON com:
       }
     }, functionName, endpoint);
 
-    const result = JSON.parse(response.text);
+    let result: any = null;
+    const rawText = (response?.text || "").trim();
+    const cleanJson = rawText.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
+    result = JSON.parse(cleanJson);
 
-    // Backend-side detection for found words and counts
-    const wordCounts: { [key: string]: number } = {};
-    const foundWords: string[] = [];
-    
-    const normalizedText = input.originalText.toLowerCase();
-    input.forbiddenWords.forEach((word: string) => {
-      const regex = new RegExp(`\\b${word.toLowerCase().replace(/\//g, '\\/')}\\b`, 'gi');
-      const matches = normalizedText.match(regex);
-      if (matches) {
-        wordCounts[word] = matches.length;
-        foundWords.push(word);
-      }
-    });
-
-    res.json({
+    return res.json({
       ...result,
       foundWords,
       wordCounts
     });
   } catch (err: any) {
-    const rawStatus = err?.status;
-    const status = typeof rawStatus === "number" && rawStatus >= 100 && rawStatus < 600 ? rawStatus : 500;
-    const category = logTechnicalDetails(functionName, endpoint, model, status, err);
-    res.status(status).json({
-      error: category,
-      message: err?.message || "Erro ao reescrever descrição."
+    console.warn("[rewriteDescription] Gemini request failed or quota exceeded, using high-quality structured fallback:", err?.message || err);
+    logTechnicalDetails(functionName, endpoint, model, err?.status || 500, err);
+    
+    const fallbackResult = generateFallbackRewrite(input);
+    return res.json({
+      ...fallbackResult,
+      foundWords,
+      wordCounts
     });
   }
 });

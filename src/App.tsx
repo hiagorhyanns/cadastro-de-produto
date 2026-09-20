@@ -33,6 +33,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { EcommerceTeamLogo } from "@/components/EcommerceTeamLogo";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -44,13 +45,36 @@ import { rewriteDescription, generateSEOTitle, type RewriteResult, type SEOResul
 import { resizeAndCompressImage } from "./lib/imageCompressor";
 import { useImageGeneration } from "./contexts/ImageGenerationContext";
 import { SEOTab } from "./components/SEOTab";
-import { SEOManagerTab } from "./components/SEOManagerTab";
 import { DescriptionTab } from "./components/DescriptionTab";
 import { ImageTab } from "./components/ImageTab";
 import { PromptSaverTab } from "./components/PromptSaverTab";
 import { ToolsTab } from "./components/ToolsTab";
-import { VideoTab } from "./components/VideoTab";
 import { TreinamentoTab } from "./components/TreinamentoTab";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+
+const VALID_TABS = ["seo", "formatar", "imagem", "prompts", "ferramentas", "treinamento"];
+const TAB_STORAGE_KEY = "cpa_last_active_tab";
+
+function getStoredTab(): string {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const urlTab = params.get("tab");
+    if (urlTab && VALID_TABS.includes(urlTab)) {
+      return urlTab;
+    }
+    const hash = window.location.hash.replace("#", "").split("?")[0].replace("tab=", "");
+    if (hash && VALID_TABS.includes(hash)) {
+      return hash;
+    }
+    const cached = localStorage.getItem(TAB_STORAGE_KEY);
+    if (cached && VALID_TABS.includes(cached)) {
+      return cached;
+    }
+  } catch (e) {
+    console.error("Error reading stored tab:", e);
+  }
+  return "seo";
+}
 
 const FORBIDDEN_WORDS = [
   "vitrine", "pitão", "paralelo", "profissional", "garantido", "garantem", "couro", "q/d", "wind", "mel", "imbuia", 
@@ -65,7 +89,34 @@ const FORBIDDEN_WORDS = [
 ];
 
 export default function App() {
-  const [activeTab, setActiveTab] = React.useState("seo");
+  const [activeTab, setActiveTabState] = React.useState<string>(getStoredTab);
+
+  const setActiveTab = React.useCallback((tab: string) => {
+    setActiveTabState(tab);
+    try {
+      localStorage.setItem(TAB_STORAGE_KEY, tab);
+      const url = new URL(window.location.href);
+      url.searchParams.set("tab", tab);
+      if (tab !== "treinamento" && tab !== "prompts") {
+        url.searchParams.delete("sub");
+      }
+      window.history.replaceState({}, "", url.toString());
+    } catch (e) {
+      console.error("Error persisting tab:", e);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    try {
+      const url = new URL(window.location.href);
+      if (!url.searchParams.has("tab")) {
+        url.searchParams.set("tab", activeTab);
+        window.history.replaceState({}, "", url.toString());
+      }
+    } catch (e) {
+      console.error("Error syncing tab to URL:", e);
+    }
+  }, [activeTab]);
   
   // Image Generation State from Context
   const { 
@@ -288,56 +339,11 @@ export default function App() {
       <header className="w-full border-b border-blue-700 bg-blue-600 backdrop-blur-xl shrink-0">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between gap-2 lg:gap-4">
-            {/* Brand Logo with Animation */}
-            <div className="flex items-center gap-1.5 lg:gap-3 shrink-0">
-              <motion.div 
-                className="relative w-8 h-8 lg:w-10 lg:h-10 flex items-center justify-center bg-white/10 rounded-lg overflow-hidden border border-white/20 shadow-inner group"
-                whileHover={{ scale: 1.05 }}
-              >
-                {/* Background "Screen" Glow */}
-                <motion.div 
-                  className="absolute inset-0 bg-blue-400/20 shadow-[inset_0_0_10px_rgba(255,255,255,0.1)]"
-                  animate={{ 
-                    opacity: [0.2, 0.4, 0.2]
-                  }}
-                  transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                />
-                
-                {/* Vector Computer Icon */}
-                <motion.div
-                  animate={{ 
-                    y: [0, -1, 0],
-                    rotate: [0, 1, -1, 0]
-                  }}
-                  transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-                >
-                  <Monitor className="w-6 h-6 text-white drop-shadow-md" />
-                </motion.div>
-
-                {/* Animated Mouse Pointer (Working Effect) */}
-                <motion.div
-                  className="absolute bottom-2 right-2"
-                  animate={{ 
-                    x: [0, 2, -2, 4, 0],
-                    y: [0, -2, 2, -4, 0],
-                  }}
-                  transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                >
-                  <MousePointer2 className="w-3 h-3 text-white fill-white shadow-lg" />
-                </motion.div>
-
-                {/* Cyberpunk Scanning Line */}
-                <motion.div 
-                  className="absolute top-0 left-0 w-full h-[1px] bg-blue-300 shadow-[0_0_8px_#fff]"
-                  animate={{ y: [0, 40] }}
-                  transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
-                />
-              </motion.div>
-
-              <div className="flex flex-col -space-y-1 shrink-0 min-w-0">
-                <span className="font-black text-[15px] sm:text-[18px] md:text-[20px] lg:text-[22px] tracking-tighter uppercase text-white transition-all duration-300 whitespace-nowrap">ESTÚDIO CPA</span>
-                <span className="text-[5px] sm:text-[6px] lg:text-[7px] font-black uppercase tracking-[0.1em] sm:tracking-[0.2em] lg:tracking-[0.3em] text-blue-100 pl-0.5 transition-all duration-300">Cadastro de Produto</span>
-              </div>
+            {/* Brand Logo & Name */}
+            <div className="flex items-center shrink-0">
+              <span className="font-black text-[18px] tracking-tight uppercase text-white transition-all duration-300 whitespace-nowrap select-none">
+                CADASTRO DE PRODUTO
+              </span>
             </div>
 
             {/* Desktop Navigation */}
@@ -384,8 +390,8 @@ export default function App() {
                 onClick={() => setActiveTab("prompts")}
                 className={`flex items-center gap-1 lg:gap-2 px-2 lg:px-4 xl:px-6 py-2 rounded-lg text-[11px] lg:text-[13px] xl:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === "prompts" ? "text-white" : "text-blue-100/60 hover:text-white"}`}
               >
-                <Bookmark className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${activeTab === "prompts" ? "text-white" : "text-blue-100/60"}`} />
-                Prompt
+                <Sparkles className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${activeTab === "prompts" ? "text-white" : "text-blue-100/60"}`} />
+                IA
               </button>
 
               <div className="w-[1px] h-4 bg-white/10 mx-1" />
@@ -395,27 +401,7 @@ export default function App() {
                 className={`flex items-center gap-1 lg:gap-2 px-2 lg:px-4 xl:px-6 py-2 rounded-lg text-[11px] lg:text-[13px] xl:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === "ferramentas" ? "text-white" : "text-blue-100/60 hover:text-white"}`}
               >
                 <Wrench className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${activeTab === "ferramentas" ? "text-white" : "text-blue-100/60"}`} />
-                Ferramentas
-              </button>
-
-              <div className="w-[1px] h-4 bg-white/10 mx-1" />
-
-              <button 
-                onClick={() => setActiveTab("video")}
-                className={`flex items-center gap-1 lg:gap-2 px-2 lg:px-4 xl:px-6 py-2 rounded-lg text-[11px] lg:text-[13px] xl:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === "video" ? "text-white" : "text-blue-100/60 hover:text-white"}`}
-              >
-                <Video className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${activeTab === "video" ? "text-white" : "text-blue-100/60"}`} />
-                Vídeo
-              </button>
-
-              <div className="w-[1px] h-4 bg-white/10 mx-1" />
-
-              <button 
-                onClick={() => setActiveTab("seo_manager")}
-                className={`flex items-center gap-1 lg:gap-2 px-2 lg:px-4 xl:px-6 py-2 rounded-lg text-[11px] lg:text-[13px] xl:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === "seo_manager" ? "text-white" : "text-blue-100/60 hover:text-white"}`}
-              >
-                <Target className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${activeTab === "seo_manager" ? "text-white" : "text-blue-100/60"}`} />
-                SEO
+                APP
               </button>
 
               <div className="w-[1px] h-4 bg-white/10 mx-1" />
@@ -425,7 +411,7 @@ export default function App() {
                 className={`flex items-center gap-1 lg:gap-2 px-2 lg:px-4 xl:px-6 py-2 rounded-lg text-[11px] lg:text-[13px] xl:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === "treinamento" ? "text-white" : "text-blue-100/60 hover:text-white"}`}
               >
                 <PlusCircle className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${activeTab === "treinamento" ? "text-white" : "text-blue-100/60"}`} />
-                Cadastro
+                Outros
               </button>
             </nav>
 
@@ -473,8 +459,8 @@ export default function App() {
               onClick={() => setActiveTab("prompts")}
               className={`px-4 py-3 rounded-lg text-[10px] font-black uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "prompts" ? "text-white" : "text-white/40"}`}
             >
-              <Bookmark className="w-4 h-4" />
-              Prompt
+              <Sparkles className="w-4 h-4" />
+              IA
             </button>
 
             <div className="w-[1px] h-4 bg-white/10 mx-1" />
@@ -484,27 +470,7 @@ export default function App() {
               className={`px-4 py-3 rounded-lg text-[10px] font-black uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "ferramentas" ? "text-white" : "text-white/40"}`}
             >
               <Wrench className="w-4 h-4" />
-              Ferramentas
-            </button>
-
-            <div className="w-[1px] h-4 bg-white/10 mx-1" />
-
-            <button 
-              onClick={() => setActiveTab("video")}
-              className={`px-4 py-3 rounded-lg text-[10px] font-black uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "video" ? "text-white" : "text-white/40"}`}
-            >
-              <Video className="w-4 h-4" />
-              Vídeo
-            </button>
-
-            <div className="w-[1px] h-4 bg-white/10 mx-1" />
-
-            <button 
-              onClick={() => setActiveTab("seo_manager")}
-              className={`px-4 py-3 rounded-lg text-[10px] font-black uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "seo_manager" ? "text-white" : "text-white/40"}`}
-            >
-              <Target className="w-4 h-4" />
-              SEO
+              APP
             </button>
 
             <div className="w-[1px] h-4 bg-white/10 mx-1" />
@@ -514,7 +480,7 @@ export default function App() {
               className={`px-4 py-3 rounded-lg text-[10px] font-black uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "treinamento" ? "text-white" : "text-white/40"}`}
             >
               <PlusCircle className="w-4 h-4" />
-              Cadastro
+              Outros
             </button>
           </div>
         </ScrollArea>
@@ -533,78 +499,84 @@ export default function App() {
           </div>
 
           <TabsContent value="treinamento">
-            <TreinamentoTab />
+            <ErrorBoundary isSection fallbackTitle="Falha na aba Treinamento">
+              <TreinamentoTab />
+            </ErrorBoundary>
           </TabsContent>
 
           <TabsContent value="imagem">
-            <ImageTab 
-              imageLoading={imageLoading}
-              imageResult={imageResult}
-               imageError={imageError}
-              preview={preview}
-              filename={filename}
-              imageFormData={imageFormData}
-              setImageFormData={setImageFormData}
-              handleSubmit={handleSubmit}
-              handleFileChange={handleFileChange}
-              handleDownload={handleDownload}
-              setSelectedImage={setSelectedImage}
-              clearImageResult={clearImageResult}
-              filenameCopyAlert={filenameCopyAlert}
-              setFilenameCopyAlert={setFilenameCopyAlert}
-              uploadFilenameCopyAlert={uploadFilenameCopyAlert}
-              setUploadFilenameCopyAlert={setUploadFilenameCopyAlert}
-              quotaExceeded={quotaError?.exceeded ?? false}
-              setPreview={setPreview}
-              setFilename={setFilename}
-            />
+            <ErrorBoundary isSection fallbackTitle="Falha na aba Imagem">
+              <ImageTab 
+                imageLoading={imageLoading}
+                imageResult={imageResult}
+                imageError={imageError}
+                preview={preview}
+                filename={filename}
+                imageFormData={imageFormData}
+                setImageFormData={setImageFormData}
+                handleSubmit={handleSubmit}
+                handleFileChange={handleFileChange}
+                handleDownload={handleDownload}
+                setSelectedImage={setSelectedImage}
+                clearImageResult={clearImageResult}
+                filenameCopyAlert={filenameCopyAlert}
+                setFilenameCopyAlert={setFilenameCopyAlert}
+                uploadFilenameCopyAlert={uploadFilenameCopyAlert}
+                setUploadFilenameCopyAlert={setUploadFilenameCopyAlert}
+                quotaExceeded={quotaError?.exceeded ?? false}
+                setPreview={setPreview}
+                setFilename={setFilename}
+              />
+            </ErrorBoundary>
           </TabsContent>
 
           <TabsContent value="formatar">
-            <DescriptionTab 
-              originalDesc={originalDesc}
-              setOriginalDesc={setOriginalDesc}
-              formatarMedidas={formatarMedidas}
-              setFormatarMedidas={setFormatarMedidas}
-              handleRewrite={handleRewrite}
-              rewriteLoading={rewriteLoading}
-              rewriteResult={rewriteResult}
-              foundWords={foundWords}
-              wordCounts={wordCounts}
-              showForbiddenAlert={showForbiddenAlert}
-              setShowForbiddenAlert={setShowForbiddenAlert}
-              copyAlert={copyAlert}
-              setCopyAlert={setCopyAlert}
-              typeDescAlert={typeDescAlert}
-              setTypeDescAlert={setTypeDescAlert}
-              quotaExceeded={quotaError?.exceeded ?? false}
-              seoFormData={seoFormData}
-              forbiddenWords={FORBIDDEN_WORDS}
-            />
+            <ErrorBoundary isSection fallbackTitle="Falha na aba Formatar Descrição">
+              <DescriptionTab 
+                originalDesc={originalDesc}
+                setOriginalDesc={setOriginalDesc}
+                formatarMedidas={formatarMedidas}
+                setFormatarMedidas={setFormatarMedidas}
+                handleRewrite={handleRewrite}
+                rewriteLoading={rewriteLoading}
+                rewriteResult={rewriteResult}
+                foundWords={foundWords}
+                wordCounts={wordCounts}
+                showForbiddenAlert={showForbiddenAlert}
+                setShowForbiddenAlert={setShowForbiddenAlert}
+                copyAlert={copyAlert}
+                setCopyAlert={setCopyAlert}
+                typeDescAlert={typeDescAlert}
+                setTypeDescAlert={setTypeDescAlert}
+                quotaExceeded={quotaError?.exceeded ?? false}
+                seoFormData={seoFormData}
+                forbiddenWords={FORBIDDEN_WORDS}
+              />
+            </ErrorBoundary>
           </TabsContent>
           <TabsContent value="seo">
-            <SEOTab 
-              seoFormData={seoFormData}
-              setSeoFormData={setSeoFormData}
-              handleSEOGenerate={handleSEOGenerate}
-              seoLoading={seoLoading}
-              seoResult={seoResult}
-              seoCopyAlert={seoCopyAlert}
-              setSeoCopyAlert={setSeoCopyAlert}
-              quotaExceeded={quotaError?.exceeded ?? false}
-            />
+            <ErrorBoundary isSection fallbackTitle="Falha na aba Gerador de Título">
+              <SEOTab 
+                seoFormData={seoFormData}
+                setSeoFormData={setSeoFormData}
+                handleSEOGenerate={handleSEOGenerate}
+                seoLoading={seoLoading}
+                seoResult={seoResult}
+                seoCopyAlert={seoCopyAlert}
+                setSeoCopyAlert={setSeoCopyAlert}
+                quotaExceeded={quotaError?.exceeded ?? false}
+              />
+            </ErrorBoundary>
           </TabsContent>
           <TabsContent value="prompts">
-            <PromptSaverTab />
+            <ErrorBoundary isSection fallbackTitle="Falha na aba IA">
+              <PromptSaverTab />
+            </ErrorBoundary>
           </TabsContent>
           <TabsContent value="ferramentas">
-            <ToolsTab />
-          </TabsContent>
-          <TabsContent value="video">
-            <VideoTab />
-          </TabsContent>
-          <TabsContent value="seo_manager">
-            <SEOManagerTab />
+            <ErrorBoundary isSection fallbackTitle="Falha na aba APP">
+              <ToolsTab />
+            </ErrorBoundary>
           </TabsContent>
         </Tabs>
       </main>

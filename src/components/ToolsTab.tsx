@@ -203,7 +203,6 @@ export function ToolsTab() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input 
             ref={searchInputRef}
-            placeholder="Pesquisar ferramentas..." 
             className="pl-10 pr-10 h-11 border-slate-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg bg-white shadow-sm"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -247,7 +246,7 @@ export function ToolsTab() {
 
       <div className="space-y-4">
         {filteredTools.length === 0 ? (
-          <Card className="border-dashed border-2 border-slate-200 bg-slate-50/50">
+          <Card className="border-0 shadow-none bg-white">
             <CardContent className="h-40 flex flex-col items-center justify-center text-slate-400">
               <Wrench className="w-8 h-8 mb-2 opacity-20" />
               <p className="text-sm font-medium">Nenhuma ferramenta encontrada.</p>
@@ -261,7 +260,7 @@ export function ToolsTab() {
               animate={{ opacity: 1, y: 0 }}
               className="group"
             >
-              <Card className="overflow-hidden border-slate-200 hover:border-blue-300 transition-all duration-300 shadow-sm hover:shadow-md">
+              <Card className="overflow-hidden border-0 shadow-none bg-white rounded-lg">
                 <div className="flex flex-col md:flex-row">
                   {/* Tool Identity/Icon - ITEM 2 */}
                   <div className="p-4 md:p-6 flex items-start gap-4 md:border-r border-slate-50 md:w-1/3 bg-white">
@@ -433,7 +432,6 @@ export function ToolsTab() {
                           const val = e.target.value;
                           setCurrentTool(prev => prev ? {...prev, icon: val} : null);
                         }}
-                        placeholder="https://exemplo.com/icone.png"
                         className="h-11 border-slate-200 focus:border-blue-500 rounded-lg shadow-sm"
                       />
                       <p className="text-[10px] text-slate-400">Insira um link direto para a imagem do ícone.</p>
@@ -451,7 +449,6 @@ export function ToolsTab() {
                           const val = e.target.value;
                           setCurrentTool(prev => prev ? {...prev, name: val} : null);
                         }}
-                        placeholder="Ex: Gemini AI, Canva, Trello"
                         className="h-11 border-slate-200 focus:border-blue-500 rounded-lg shadow-sm"
                       />
                     </div>
@@ -465,7 +462,6 @@ export function ToolsTab() {
                           const val = e.target.value;
                           setCurrentTool(prev => prev ? {...prev, category: val} : null);
                         }}
-                        placeholder="Ex: IA, Design, SEO"
                         className="h-11 border-slate-200 focus:border-blue-500 rounded-lg shadow-sm"
                       />
                     </div>
@@ -481,7 +477,6 @@ export function ToolsTab() {
                         const val = e.target.value;
                         setCurrentTool(prev => prev ? {...prev, url: val} : null);
                       }}
-                      placeholder="https://exemplo.com"
                       className="h-11 border-slate-200 focus:border-blue-500 rounded-lg shadow-sm"
                     />
                   </div>
@@ -496,7 +491,6 @@ export function ToolsTab() {
                         const val = e.target.value;
                         setCurrentTool(prev => prev ? {...prev, description: val} : null);
                       }}
-                      placeholder="O que esta ferramenta faz?"
                       className="min-h-[120px] border-slate-200 focus:border-blue-500 rounded-lg resize-none shadow-sm"
                     />
                   </div>

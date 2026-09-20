@@ -291,7 +291,6 @@ AUDIO: ${briefing.audio}, no dialogue.`;
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input 
-            placeholder="Buscar nos vídeos anteriores..." 
             className="pl-10 h-10 bg-slate-50 border-slate-200 focus:bg-white rounded-lg transition-all"
           />
         </div>
@@ -372,8 +371,7 @@ AUDIO: ${briefing.audio}, no dialogue.`;
               <Label className="text-[10px] uppercase font-black tracking-widest text-slate-400">Nome do Produto</Label>
               <Input 
                 value={briefing.productName}
-                onChange={(e) => setBriefing({...briefing, productName: e.target.value})}
-                placeholder="Ex: Forno Turbo a Gás 5 Esteiras" 
+                onChange={(e) => setBriefing({...briefing, productName: e.target.value})} 
                 className="h-10 border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-100"
               />
             </div>
@@ -382,8 +380,7 @@ AUDIO: ${briefing.audio}, no dialogue.`;
               <Label className="text-[10px] uppercase font-black tracking-widest text-slate-400">Características de Destaque</Label>
               <Textarea 
                 value={briefing.features}
-                onChange={(e) => setBriefing({...briefing, features: e.target.value})}
-                placeholder="Ex: Pintura epóxi branca, painel digital, alta performance..." 
+                onChange={(e) => setBriefing({...briefing, features: e.target.value})} 
                 className="min-h-[80px] border-slate-200 rounded-lg text-sm focus:ring-1 focus:ring-blue-100 resize-none"
               />
             </div>
@@ -393,7 +390,7 @@ AUDIO: ${briefing.audio}, no dialogue.`;
                 <Label className="text-[10px] uppercase font-black tracking-widest text-slate-400">Cenário</Label>
                 <Select value={briefing.scene} onValueChange={(val) => setBriefing({...briefing, scene: val})}>
                   <SelectTrigger className="h-10 border-slate-200 rounded-lg text-xs">
-                    <SelectValue placeholder="Selecione..." />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {Object.keys(sceneMap).map(s => (
@@ -406,7 +403,7 @@ AUDIO: ${briefing.audio}, no dialogue.`;
                 <Label className="text-[10px] uppercase font-black tracking-widest text-slate-400">Duração</Label>
                 <Select value={briefing.duration} onValueChange={(val) => setBriefing({...briefing, duration: val})}>
                   <SelectTrigger className="h-10 border-slate-200 rounded-lg text-xs">
-                    <SelectValue placeholder="Tempo" />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="5s">5 segundos</SelectItem>
@@ -437,7 +434,7 @@ AUDIO: ${briefing.audio}, no dialogue.`;
               <Label className="text-[10px] uppercase font-black tracking-widest text-slate-400">Movimento de Câmera</Label>
               <Select value={briefing.movement} onValueChange={(val) => setBriefing({...briefing, movement: val})}>
                 <SelectTrigger className="h-10 border-slate-200 rounded-lg text-xs">
-                  <SelectValue placeholder="Selecione..." />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {Object.keys(moveMap).map(m => (
@@ -453,8 +450,7 @@ AUDIO: ${briefing.audio}, no dialogue.`;
                 <Volume2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <Input 
                   value={briefing.audio}
-                  onChange={(e) => setBriefing({...briefing, audio: e.target.value})}
-                  placeholder="Ex: Trilha eletrônica high-tech" 
+                  onChange={(e) => setBriefing({...briefing, audio: e.target.value})} 
                   className="pl-10 h-10 border-slate-200 rounded-lg text-sm"
                 />
               </div>
@@ -774,8 +770,7 @@ AUDIO: ${briefing.audio}, no dialogue.`;
                   <Input 
                     type="password"
                     value={config.xAIKey}
-                    onChange={(e) => setConfig({...config, xAIKey: e.target.value})}
-                    placeholder="xai-..." 
+                    onChange={(e) => setConfig({...config, xAIKey: e.target.value})} 
                     className="h-10 border-slate-200 rounded-lg text-sm"
                   />
                   <p className="text-[9px] text-slate-400">As chaves são salvas apenas em memória para segurança.</p>
@@ -785,8 +780,7 @@ AUDIO: ${briefing.audio}, no dialogue.`;
                   <Label className="text-[10px] uppercase font-black tracking-widest text-slate-500">URL do Proxy Grok</Label>
                   <Input 
                     value={config.proxyUrl}
-                    onChange={(e) => setConfig({...config, proxyUrl: e.target.value})}
-                    placeholder="http://localhost:8787/grok" 
+                    onChange={(e) => setConfig({...config, proxyUrl: e.target.value})} 
                     className="h-10 border-slate-200 rounded-lg text-sm font-mono"
                   />
                 </div>
@@ -795,8 +789,7 @@ AUDIO: ${briefing.audio}, no dialogue.`;
                   <Label className="text-[10px] uppercase font-black tracking-widest text-slate-500">YouTube Client ID (OAuth)</Label>
                   <Input 
                     value={config.youtubeClientId}
-                    onChange={(e) => setConfig({...config, youtubeClientId: e.target.value})}
-                    placeholder="00000000-..." 
+                    onChange={(e) => setConfig({...config, youtubeClientId: e.target.value})} 
                     className="h-10 border-slate-200 rounded-lg text-sm"
                   />
                 </div>
@@ -805,8 +798,7 @@ AUDIO: ${briefing.audio}, no dialogue.`;
                   <Label className="text-[10px] uppercase font-black tracking-widest text-slate-500">Nome do Canal</Label>
                   <Input 
                     value={config.channelName}
-                    onChange={(e) => setConfig({...config, channelName: e.target.value})}
-                    placeholder="Acimaq Equipamentos" 
+                    onChange={(e) => setConfig({...config, channelName: e.target.value})} 
                     className="h-10 border-slate-200 rounded-lg text-sm"
                   />
                 </div>
@@ -907,7 +899,6 @@ AUDIO: ${briefing.audio}, no dialogue.`;
                   <Input 
                     value={youtubeFormData.tags}
                     onChange={(e) => setYoutubeFormData({...youtubeFormData, tags: e.target.value})}
-                    placeholder="tag1, tag2..."
                     className="h-12 border-slate-200 rounded-xl"
                   />
                 </div>

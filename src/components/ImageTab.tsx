@@ -360,44 +360,46 @@ export const ImageTab = ({
       </AnimatePresence>
 
       {!isGenerationMode && (
-        <div className="flex flex-wrap items-center gap-1 bg-white p-1.5 rounded-xl border border-gray-100 shadow-sm max-w-fit mb-8">
-          {[
-            { id: "principal", label: "Principal", icon: ImageIcon },
-            { id: "ambientada", label: "Ambientada", icon: Home },
-            { id: "beneficios", label: "Benefícios", icon: Star },
-            { id: "publicitaria", label: "Publicitária", icon: Megaphone },
-            { id: "componentes", label: "Componentes", icon: Settings },
-            { id: "medidas", label: "Medidas", icon: Ruler },
-            { id: "cor", label: "Cor", icon: Sparkles },
-            { id: "outros", label: "Todos", icon: Layers }
-          ].map((tab) => {
-            const IconComponent = tab.icon;
-            const isBeneficios = tab.id === "beneficios";
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => {
-                  setSubmenu(tab.id as any);
-                  clearImageResult();
-                }}
-                className={`px-4 py-2.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
-                  submenu === tab.id 
-                    ? "bg-blue-50 text-blue-700 shadow-sm" 
-                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-                }`}
-              >
-                <IconComponent className={`w-3.5 h-3.5 ${
-                  isBeneficios 
-                    ? "text-amber-500 fill-amber-500" 
-                    : submenu === tab.id 
-                      ? "text-blue-600" 
-                      : "text-slate-400"
-                }`} />
-                {tab.label}
-              </button>
-            );
-          })}
+        <div className="flex justify-center mb-8">
+          <div className="flex flex-wrap items-center justify-center gap-1 bg-white p-1.5 rounded-xl border border-gray-100 max-w-fit shadow-none">
+            {[
+              { id: "principal", label: "Principal", icon: ImageIcon },
+              { id: "ambientada", label: "Ambientada", icon: Home },
+              { id: "beneficios", label: "Benefícios", icon: Star },
+              { id: "publicitaria", label: "Publicitária", icon: Megaphone },
+              { id: "componentes", label: "Componentes", icon: Settings },
+              { id: "medidas", label: "Medidas", icon: Ruler },
+              { id: "cor", label: "Cor", icon: Sparkles },
+              { id: "outros", label: "Todos", icon: Layers }
+            ].map((tab) => {
+              const IconComponent = tab.icon;
+              const isBeneficios = tab.id === "beneficios";
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => {
+                    setSubmenu(tab.id as any);
+                    clearImageResult();
+                  }}
+                  className={`px-4 py-2.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 shadow-none ${
+                    submenu === tab.id 
+                      ? "bg-blue-50 text-blue-700" 
+                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                  }`}
+                >
+                  <IconComponent className={`w-3.5 h-3.5 ${
+                    isBeneficios 
+                      ? "text-amber-500 fill-amber-500" 
+                      : submenu === tab.id 
+                        ? "text-blue-600" 
+                        : "text-slate-400"
+                  }`} />
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -406,7 +408,7 @@ export const ImageTab = ({
           <div className={hasRightSide ? "grid lg:grid-cols-12 gap-10" : "flex justify-center items-center py-6 w-full"}>
             {/* Left Side: Upload & Action */}
             <div className={hasRightSide ? "lg:col-span-4 space-y-6" : "w-full max-w-md space-y-6"}>
-              <Card className="border-none shadow-2xl shadow-gray-200/40 rounded-lg overflow-hidden bg-white">
+              <Card className="border-0 shadow-none rounded-lg overflow-hidden bg-white">
                 <CardContent className="p-8 space-y-8">
                   {submenu === 'componentes' ? (
                     <>
@@ -576,7 +578,6 @@ export const ImageTab = ({
                           <span className="text-[10px] text-gray-400 font-bold uppercase">Opcional</span>
                         </Label>
                         <Textarea 
-                          placeholder="EX: material, medidas exatas, peso, potência, voltagem, acabamento, componentes, observações do manual..." 
                           className="min-h-[120px] max-h-[160px] text-xs bg-gray-50/10 border-gray-200 focus:bg-white focus:border-blue-400 transition-all rounded-lg p-3 font-medium leading-relaxed resize-none"
                           value={detalhesTecnicos}
                           onChange={e => setDetalhesTecnicos(e.target.value)}
@@ -698,12 +699,11 @@ export const ImageTab = ({
             {hasRightSide && (
               <div className="lg:col-span-8 space-y-8 animate-fade-in">
                 {submenu === "outros" && (
-                  <Card className="border-none shadow-2xl shadow-gray-200/40 rounded-lg overflow-hidden bg-white">
+                  <Card className="border-0 shadow-none rounded-lg overflow-hidden bg-white">
                     <CardContent className="p-8 space-y-6">
                       <div className="space-y-3">
                         <Label className="font-medium text-gray-500 pl-1 tracking-tight">Especificações do produto</Label>
                         <Textarea 
-                          placeholder="Insira as especificações detalhadas do produto aqui para guiar a IA na geração..." 
                           className="h-[300px] max-h-[300px] min-h-[300px] overflow-y-auto resize-none bg-blue-50/10 border-blue-100 focus:bg-white transition-all rounded-lg p-4 font-medium w-full"
                           value={imageFormData.descricao}
                           onChange={e => setImageFormData((prev: any) => ({...prev, descricao: e.target.value}))}
@@ -714,7 +714,7 @@ export const ImageTab = ({
                 )}
 
                 {submenu === 'medidas' && (
-                  <Card className="border-none shadow-2xl shadow-gray-200/40 rounded-lg overflow-hidden bg-white">
+                  <Card className="border-0 shadow-none rounded-lg overflow-hidden bg-white">
                     <CardContent className="p-8 space-y-6">
                       {/* Inputs de Medidas */}
                       <div className="p-5 border border-blue-100 bg-blue-50/10 rounded-xl space-y-4 animate-fade-in">
@@ -759,12 +759,11 @@ export const ImageTab = ({
                 )}
 
                 {submenu === 'beneficios' && (
-                  <Card className="border-none shadow-2xl shadow-gray-200/40 rounded-lg overflow-hidden bg-white">
+                  <Card className="border-0 shadow-none rounded-lg overflow-hidden bg-white">
                     <CardContent className="p-8 space-y-6">
                       <div className="space-y-3">
                         <Label className="font-bold text-sm text-gray-750">Principais características do produto</Label>
                         <Textarea 
-                          placeholder="Ex: potência, capacidade, material, voltagem, economia, resistência, praticidade, uso indicado..." 
                           className="h-[200px] max-h-[300px] min-h-[150px] overflow-y-auto resize-none bg-amber-50/10 border-amber-100 focus:bg-white transition-all rounded-lg p-4 font-medium text-sm leading-relaxed"
                           value={imageFormData.descricao}
                           onChange={e => setImageFormData((prev: any) => ({...prev, descricao: e.target.value}))}

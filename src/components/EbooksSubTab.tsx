@@ -379,7 +379,6 @@ export function EbooksSubTab() {
                   <Input 
                     value={editingEbook.title} 
                     onChange={e => setEditingEbook({...editingEbook, title: e.target.value})} 
-                    placeholder="" 
                   />
                 </div>
 
@@ -391,7 +390,6 @@ export function EbooksSubTab() {
                     value={editingEbook.description} 
                     onChange={e => setEditingEbook({...editingEbook, description: e.target.value})} 
                     rows={4} 
-                    placeholder="" 
                   />
                 </div>
 
@@ -402,7 +400,6 @@ export function EbooksSubTab() {
                   <Input 
                     value={editingEbook.coverUrl} 
                     onChange={e => setEditingEbook({...editingEbook, coverUrl: e.target.value})} 
-                    placeholder="" 
                   />
                 </div>
 
@@ -413,7 +410,6 @@ export function EbooksSubTab() {
                   <Input 
                     value={editingEbook.downloadUrl} 
                     onChange={e => setEditingEbook({...editingEbook, downloadUrl: e.target.value})} 
-                    placeholder="" 
                   />
                 </div>
 
@@ -427,7 +423,6 @@ export function EbooksSubTab() {
                   <Input 
                     value={tagsInput} 
                     onChange={e => setTagsInput(e.target.value)} 
-                    placeholder="" 
                   />
                 </div>
               </div>
