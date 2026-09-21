@@ -74,7 +74,6 @@ export const DescriptionTab = ({
   seoFormData,
   forbiddenWords
 }: DescriptionTabProps) => {
-  const [showGuide, setShowGuide] = React.useState(true);
   const [activeSubTab, setActiveSubTab] = React.useState<"completo" | "rapido">("completo");
 
   // Rapid (Quick) states
@@ -259,59 +258,6 @@ export const DescriptionTab = ({
         {/* COMPLETO SUBTAB VIEW */}
         {activeSubTab === "completo" && (
           <div className="space-y-8 animate-in fade-in duration-300">
-            {/* Educational Guidance Block */}
-            {showGuide && (
-              <Card className="border-0 shadow-none rounded-lg bg-white relative group">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowGuide(false)}
-                  className="absolute top-4 right-4 h-8 w-8 text-blue-400 hover:text-blue-600 hover:bg-blue-100/50 rounded-full transition-all z-10"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-                <CardHeader className="p-8 pb-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-100">
-                      <Lightbulb className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-sm font-black uppercase tracking-widest text-blue-900">Guia de Preparação e Orientação</CardTitle>
-                      <CardDescription className="text-[10px] font-bold uppercase tracking-widest text-blue-400">Como obter o melhor resultado para o Cadastro de Produto</CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-8 pt-0 space-y-6">
-                  <div className="grid grid-cols-1 gap-8">
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                        <h4 className="text-[11px] font-black uppercase tracking-widest text-blue-600">Preparação de Dados</h4>
-                      </div>
-                      <p className="text-sm text-slate-600 leading-relaxed font-medium">
-                        Junte o máximo de informações possível: utilize textos de concorrentes, catálogos oficiais de fornecedores, manuais técnicos, fichas técnicas e embalagens. Inclua todas as características técnicas reais do produto, como medidas, peso, material, capacidade, voltagem, funcionalidades, diferenciais e aplicações de uso.
-                      </p>
-                      <div className="bg-white/60 p-4 rounded-lg border border-blue-100/50 text-xs text-blue-800 font-medium leading-relaxed">
-                        <strong>DICA:</strong> Você pode colar um <strong>rascunho com todas essas informações misturadas</strong>. A ferramenta organiza, reformula e transforma em uma descrição mais profissional, clara e otimizada para SEO, focando nos diferenciais reais do produto.
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-4">
-                    <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-lg shadow-inner text-white">
-                      <Sparkles className="w-5 h-5 text-blue-200 shrink-0" />
-                      <div className="space-y-1">
-                        <p className="text-xs font-black uppercase tracking-widest">Modelo de Descrição ACP Studio</p>
-                        <p className="text-[11px] text-blue-50 leading-relaxed opacity-90">
-                          Utilizamos características técnicas e diferenciais reais para criar descrições com melhor semântica, estrutura clara e alto potencial de ranqueamento nas buscas (SEO).
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
             {/* Main Input Card */}
             <Card className="border-0 shadow-none rounded-lg bg-white overflow-hidden">
               <CardContent className="p-8 space-y-6">

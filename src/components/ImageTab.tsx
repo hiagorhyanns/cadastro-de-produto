@@ -25,6 +25,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
 import { type GenerationResult, validateProductFidelity } from "@/lib/gemini";
 import { resizeAndCompressImage } from "../lib/imageCompressor";
+import { PromptGeneratorTab } from "./PromptGeneratorTab";
 
 interface ImageTabProps {
   imageLoading: boolean;
@@ -81,7 +82,7 @@ export const ImageTab = ({
 }: ImageTabProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [submenu, setSubmenu] = React.useState<'principal' | 'ambientada' | 'beneficios' | 'publicitaria' | 'medidas' | 'outros' | 'componentes' | 'cor'>('principal');
-  const hasRightSide = ["outros", "medidas", "beneficios"].includes(submenu);
+  const hasRightSide = ["medidas", "beneficios"].includes(submenu);
   const [isGenerationMode, setIsGenerationMode] = React.useState(false);
   const [showBackConfirm, setShowBackConfirm] = React.useState(false);
   const [showValidationAlert, setShowValidationAlert] = React.useState(false);
@@ -381,6 +382,7 @@ export const ImageTab = ({
                   onClick={() => {
                     setSubmenu(tab.id as any);
                     clearImageResult();
+                    setIsGenerationMode(false);
                   }}
                   className={`px-4 py-2.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 shadow-none ${
                     submenu === tab.id 
@@ -403,12 +405,14 @@ export const ImageTab = ({
         </div>
       )}
 
-      {!isGenerationMode ? (
+      {submenu === 'outros' ? (
+        <PromptGeneratorTab />
+      ) : !isGenerationMode ? (
         <form onSubmit={onGenerate} className="w-full">
           <div className={hasRightSide ? "grid lg:grid-cols-12 gap-10" : "flex justify-center items-center py-6 w-full"}>
             {/* Left Side: Upload & Action */}
             <div className={hasRightSide ? "lg:col-span-4 space-y-6" : "w-full max-w-md space-y-6"}>
-              <Card className="border-0 shadow-none rounded-lg overflow-hidden bg-white">
+              <Card className="border-0 shadow-none rounded-lg overflow-hidden bg-transparent">
                 <CardContent className="p-8 space-y-8">
                   {submenu === 'componentes' ? (
                     <>
@@ -423,7 +427,7 @@ export const ImageTab = ({
                           onDragOver={handleDragOverPrimary}
                           onDragLeave={handleDragLeavePrimary}
                           onDrop={handleDropPrimary}
-                          className={`relative aspect-square rounded-lg border-2 border-dashed transition-all cursor-pointer group overflow-hidden flex flex-col items-center justify-center gap-4
+                          className={`relative aspect-square rounded-lg border-2 border-dashed transition-all cursor-pointer group overflow-hidden flex flex-col items-center justify-center gap-4 bg-transparent
                             ${isDraggingPrimary 
                               ? 'border-blue-600 bg-blue-50/60 ring-4 ring-blue-100 scale-[1.01]' 
                               : preview 
@@ -460,7 +464,7 @@ export const ImageTab = ({
                                initial={{ opacity: 0, y: -10 }}
                                animate={{ opacity: 1, y: 0 }}
                                exit={{ opacity: 0, y: -10 }}
-                              className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 shadow-sm"
+                              className="flex items-center justify-between p-3 bg-slate-100/70 rounded-lg border border-gray-200 shadow-sm"
                             >
                               <div className="flex flex-col gap-0.5 overflow-hidden">
                                 <span className="text-xs font-bold text-gray-600 truncate max-w-[150px]">{filename}</span>
@@ -505,7 +509,7 @@ export const ImageTab = ({
                           onDragOver={handleDragOverTecnico}
                           onDragLeave={handleDragLeaveTecnico}
                           onDrop={handleDropTecnico}
-                          className={`relative aspect-[2/1] rounded-lg border-2 border-dashed transition-all cursor-pointer group overflow-hidden flex flex-col items-center justify-center gap-2
+                          className={`relative aspect-[2/1] rounded-lg border-2 border-dashed transition-all cursor-pointer group overflow-hidden flex flex-col items-center justify-center gap-2 bg-transparent
                             ${isDraggingTecnico 
                               ? 'border-blue-600 bg-blue-50/60 ring-4 ring-blue-100 scale-[1.01]' 
                               : previewTecnico 
@@ -542,7 +546,7 @@ export const ImageTab = ({
                               initial={{ opacity: 0, y: -10 }}
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0, y: -10 }}
-                              className="flex items-center justify-between p-2 bg-white rounded-lg border border-gray-100 shadow-sm animate-fade-in"
+                              className="flex items-center justify-between p-2 bg-slate-100/70 rounded-lg border border-gray-200 shadow-sm animate-fade-in"
                             >
                               <div className="flex flex-col gap-0.5 overflow-hidden">
                                 <span className="text-xs font-semibold text-gray-600 truncate max-w-[150px]">{filenameTecnico}</span>
@@ -591,7 +595,7 @@ export const ImageTab = ({
                         onDragOver={handleDragOverPrimary}
                         onDragLeave={handleDragLeavePrimary}
                         onDrop={handleDropPrimary}
-                        className={`relative aspect-square rounded-lg border-2 border-dashed transition-all cursor-pointer group overflow-hidden flex flex-col items-center justify-center gap-4
+                        className={`relative aspect-square rounded-lg border-2 border-dashed transition-all cursor-pointer group overflow-hidden flex flex-col items-center justify-center gap-4 bg-transparent
                           ${isDraggingPrimary 
                             ? 'border-blue-600 bg-blue-50/60 ring-4 ring-blue-100 scale-[1.01]' 
                             : preview 
@@ -628,7 +632,7 @@ export const ImageTab = ({
                              initial={{ opacity: 0, y: -10 }}
                              animate={{ opacity: 1, y: 0 }}
                              exit={{ opacity: 0, y: -10 }}
-                            className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 shadow-sm"
+                            className="flex items-center justify-between p-3 bg-slate-100/70 rounded-lg border border-gray-200 shadow-sm"
                           >
                             <div className="flex flex-col gap-0.5 overflow-hidden">
                               <span className="text-xs font-bold text-gray-600 truncate max-w-[180px]">{filename}</span>
@@ -698,23 +702,8 @@ export const ImageTab = ({
             {/* Right Side: Specs, Dimensions & Explanation */}
             {hasRightSide && (
               <div className="lg:col-span-8 space-y-8 animate-fade-in">
-                {submenu === "outros" && (
-                  <Card className="border-0 shadow-none rounded-lg overflow-hidden bg-white">
-                    <CardContent className="p-8 space-y-6">
-                      <div className="space-y-3">
-                        <Label className="font-medium text-gray-500 pl-1 tracking-tight">Especificações do produto</Label>
-                        <Textarea 
-                          className="h-[300px] max-h-[300px] min-h-[300px] overflow-y-auto resize-none bg-blue-50/10 border-blue-100 focus:bg-white transition-all rounded-lg p-4 font-medium w-full"
-                          value={imageFormData.descricao}
-                          onChange={e => setImageFormData((prev: any) => ({...prev, descricao: e.target.value}))}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
                 {submenu === 'medidas' && (
-                  <Card className="border-0 shadow-none rounded-lg overflow-hidden bg-white">
+                  <Card className="border-0 shadow-none rounded-lg overflow-hidden bg-transparent">
                     <CardContent className="p-8 space-y-6">
                       {/* Inputs de Medidas */}
                       <div className="p-5 border border-blue-100 bg-blue-50/10 rounded-xl space-y-4 animate-fade-in">
@@ -759,7 +748,7 @@ export const ImageTab = ({
                 )}
 
                 {submenu === 'beneficios' && (
-                  <Card className="border-0 shadow-none rounded-lg overflow-hidden bg-white">
+                  <Card className="border-0 shadow-none rounded-lg overflow-hidden bg-transparent">
                     <CardContent className="p-8 space-y-6">
                       <div className="space-y-3">
                         <Label className="font-bold text-sm text-gray-750">Principais características do produto</Label>
@@ -822,7 +811,7 @@ export const ImageTab = ({
             <div className="space-y-8">
               {imageLoading && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20">
-                  {[...Array(submenu === 'outros' ? 6 : 1)].map((_, i) => (
+                  {[...Array(1)].map((_, i) => (
                     <div 
                       key={i}
                       className="aspect-square rounded-lg bg-white border border-gray-100 flex items-center justify-center relative overflow-hidden shadow-sm"
