@@ -154,7 +154,6 @@ export function SEOManagerTab() {
   const handleCopyText = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     setCopyStatus(id);
-    setTimeout(() => setCopyStatus(null), 2000);
   };
 
   const filteredItems = seoItems.filter(t => 

@@ -168,7 +168,6 @@ export function ToolsTab() {
   const handleCopyLink = (url: string, id: string) => {
     navigator.clipboard.writeText(url);
     setCopyStatus(id);
-    setTimeout(() => setCopyStatus(null), 2000);
   };
 
   const filteredTools = tools.filter(t => 
@@ -302,7 +301,7 @@ export function ToolsTab() {
                   </div>
 
                   {/* Tool Info & Actions */}
-                  <div className="flex-1 p-4 md:p-6 bg-[#FAFAFA] flex flex-col justify-between">
+                  <div className="flex-1 p-4 md:p-6 bg-white flex flex-col justify-between">
                     <div>
                       <p className="text-slate-600 text-sm line-clamp-2 leading-relaxed mb-4">
                         {tool.description || "Sem descrição disponível."}

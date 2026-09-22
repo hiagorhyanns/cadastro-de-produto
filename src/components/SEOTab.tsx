@@ -82,53 +82,53 @@ export function SEOTab({
         animate={{ x: 0, opacity: 1 }}
         className="space-y-6"
       >
-        <Card className="border-0 shadow-none bg-white overflow-hidden">
-          <CardContent className="p-6">
+        <Card className="border-0 shadow-none bg-transparent overflow-hidden">
+          <CardContent className="p-0 sm:p-2 bg-transparent">
             <form onSubmit={handleSEOGenerate} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">PRODUTO</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-slate-700">Produto</Label>
                   <Input 
                     value={seoFormData.name}
                     onChange={(e) => setSeoFormData({...seoFormData, name: e.target.value})}
-                    className="h-11 border-slate-200 focus:border-blue-500 rounded-lg shadow-sm"
+                    className="h-11 border-slate-200 focus:border-blue-500 rounded-lg bg-white shadow-none"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Modelo</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-slate-700">Modelo</Label>
                   <Input 
                     value={seoFormData.model}
                     onChange={(e) => setSeoFormData({...seoFormData, model: e.target.value})}
-                    className="h-11 border-slate-200 focus:border-blue-500 rounded-lg shadow-sm"
+                    className="h-11 border-slate-200 focus:border-blue-500 rounded-lg bg-white shadow-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Marca</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-slate-700">Marca</Label>
                   <Input 
                     value={seoFormData.brand}
                     onChange={(e) => setSeoFormData({...seoFormData, brand: e.target.value})}
-                    className="h-11 border-slate-200 focus:border-blue-500 rounded-lg shadow-sm"
+                    className="h-11 border-slate-200 focus:border-blue-500 rounded-lg bg-white shadow-none"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">VOLTAGEM</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-bold text-slate-700">Voltagem</Label>
                   <Input 
                     value={seoFormData.voltage}
                     onChange={(e) => setSeoFormData({...seoFormData, voltage: e.target.value})}
-                    className="h-11 border-slate-200 focus:border-blue-500 rounded-lg shadow-sm"
+                    className="h-11 border-slate-200 focus:border-blue-500 rounded-lg bg-white shadow-none"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">DIFERENCIAIS</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold text-slate-700">Diferenciais</Label>
                 <Textarea 
                   value={seoFormData.differentials}
                   onChange={(e) => setSeoFormData({...seoFormData, differentials: e.target.value})}
-                  className="min-h-[80px] border-slate-200 focus:border-blue-500 rounded-lg resize-none shadow-sm"
+                  className="min-h-[80px] border-slate-200 focus:border-blue-500 rounded-lg resize-none bg-white shadow-none"
                 />
               </div>
 

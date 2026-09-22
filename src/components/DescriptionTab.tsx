@@ -257,54 +257,49 @@ export const DescriptionTab = ({
 
         {/* COMPLETO SUBTAB VIEW */}
         {activeSubTab === "completo" && (
-          <div className="space-y-8 animate-in fade-in duration-300">
-            {/* Main Input Card */}
-            <Card className="border-0 shadow-none rounded-lg bg-white overflow-hidden">
-              <CardContent className="p-8 space-y-6">
-                <div className="space-y-3">
-                  <Label className="font-medium text-gray-500 pl-1 tracking-tight">Descrição Completa do Produto</Label>
-                  <Textarea 
-                    className="h-[300px] min-h-[300px] w-full bg-gray-50/50 border-gray-100 focus:bg-white transition-all rounded-lg p-4 text-sm leading-relaxed overflow-y-auto resize-y"
-                    value={originalDesc}
-                    onChange={(e) => setOriginalDesc(e.target.value)}
-                  />
-                </div>
+          <div className="space-y-6 animate-in fade-in duration-300">
+            {/* Main Input Area */}
+            <div className="space-y-4">
+              <Textarea 
+                className="h-[300px] min-h-[300px] w-full bg-white border-slate-200 focus:border-blue-500 shadow-none transition-all rounded-lg p-4 text-sm leading-relaxed overflow-y-auto resize-y"
+                value={originalDesc}
+                onChange={(e) => setOriginalDesc(e.target.value)}
+                placeholder="Cole ou digite a descrição do produto..."
+              />
 
-                {/* Controls Row and Critical Alert */}
-                <div className="flex flex-col md:flex-row items-center gap-4 justify-between pt-2">
-                  <div className="flex-1 p-3 bg-red-50/50 rounded-lg border border-red-100 flex items-start gap-3">
-                    <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
-                    <p className="text-[11px] text-red-900 font-medium leading-relaxed">
-                      <strong>Atenção:</strong> esta ferramenta é apenas um apoio criativo. É obrigatório revisar todas as informações geradas antes de publicar no site. Confira dados técnicos, medidas, peso, voltagem, capacidade, material, marca, modelo e possíveis divergências com catálogo, fornecedor ou ficha técnica. Evite informações inventadas, promessas comerciais exageradas ou atributos não confirmados.
-                    </p>
-                  </div>
-                  
-                  <Button 
-                    onClick={handleRewrite}
-                    disabled={rewriteLoading || !originalDesc.trim() || foundWords.some(w => w.toLowerCase() === "frete")}
-                    className={`w-full md:w-64 h-11 text-white font-black rounded-lg shadow-xl transition-all active:scale-[0.98] disabled:opacity-70 uppercase tracking-tight shrink-0 ${
-                      foundWords.some(w => w.toLowerCase() === "frete") 
-                        ? 'bg-red-500 hover:bg-red-500 shadow-red-200 cursor-not-allowed' 
-                        : 'bg-blue-600 hover:bg-blue-700 shadow-blue-200'
-                    }`}
-                  >
-                    {rewriteLoading ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : foundWords.some(w => w.toLowerCase() === "frete") ? (
-                      <>
-                        <AlertCircle className="w-4 h-4 mr-2" />
-                        Bloqueado por "Frete"
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        Melhorar descrição
-                      </>
-                    )}
-                  </Button>
+              {/* Controls Row and Critical Alert */}
+              <div className="flex flex-col md:flex-row items-center gap-4 justify-between pt-1">
+                <div className="flex-1">
+                  <p className="text-[11px] text-red-600 font-medium leading-relaxed">
+                    <strong>Atenção:</strong> esta ferramenta é apenas um apoio criativo. É obrigatório revisar todas as informações geradas antes de publicar no site. Confira dados técnicos, medidas, peso, voltagem, capacidade, material, marca, modelo e possíveis divergências com catálogo, fornecedor ou ficha técnica. Evite informações inventadas, promessas comerciais exageradas ou atributos não confirmados.
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
+                
+                <Button 
+                  onClick={handleRewrite}
+                  disabled={rewriteLoading || !originalDesc.trim() || foundWords.some(w => w.toLowerCase() === "frete")}
+                  className={`w-full md:w-64 h-11 text-white font-black rounded-lg shadow-xl transition-all active:scale-[0.98] disabled:opacity-70 uppercase tracking-tight shrink-0 ${
+                    foundWords.some(w => w.toLowerCase() === "frete") 
+                      ? 'bg-red-500 hover:bg-red-500 shadow-red-200 cursor-not-allowed' 
+                      : 'bg-blue-600 hover:bg-blue-700 shadow-blue-200'
+                  }`}
+                >
+                  {rewriteLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : foundWords.some(w => w.toLowerCase() === "frete") ? (
+                    <>
+                      <AlertCircle className="w-4 h-4 mr-2" />
+                      Bloqueado por "Frete"
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Melhorar descrição
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
 
             {/* Secondary Info (Keywords and Restricted Terms) */}
             {(rewriteResult || foundWords.length > 0) && (
@@ -602,53 +597,49 @@ export const DescriptionTab = ({
 
         {/* RAPIDO / SIMPLES SUBTAB VIEW */}
         {activeSubTab === "rapido" && (
-          <div className="space-y-8 animate-in fade-in duration-300">
-            {/* Input Card for Rapido */}
-            <Card className="border-0 shadow-none rounded-lg bg-white overflow-hidden">
-              <CardContent className="p-8 space-y-6">
-                <div className="space-y-3">
-                  <Label className="font-medium text-gray-500 pl-1 tracking-tight">Rascunho de Texto / Dados Básicos do Produto</Label>
-                  <Textarea 
-                    className="h-[180px] min-h-[180px] w-full bg-slate-50/50 border-slate-100 focus:bg-white focus:ring-1 focus:ring-indigo-100 transition-all rounded-lg p-4 text-sm leading-relaxed overflow-y-auto resize-y"
-                    value={rapidInput}
-                    onChange={(e) => setRapidInput(e.target.value)}
-                  />
-                </div>
+          <div className="space-y-6 animate-in fade-in duration-300">
+            {/* Input Form for Rapido */}
+            <div className="space-y-4">
+              <Textarea 
+                className="h-[180px] min-h-[180px] w-full bg-white border-slate-200 focus:border-blue-500 shadow-none transition-all rounded-lg p-4 text-sm leading-relaxed overflow-y-auto resize-y"
+                value={rapidInput}
+                onChange={(e) => setRapidInput(e.target.value)}
+                placeholder="Rascunho de texto ou dados básicos do produto..."
+              />
 
-                <div className="flex flex-col md:flex-row items-center gap-4 justify-between pt-2">
-                  <div className="flex-1 p-3 bg-indigo-50/30 rounded-lg border border-indigo-100/30 flex items-start gap-4">
-                    <AlertCircle className="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" />
-                    <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
-                      <strong>Qualidade Garantida:</strong> O parágrafo de saída integrará de forma fluida os diferenciais, problema do cliente e solução comercial, garantindo excelente leitura rápida sem passar do limite recomendado para marketplaces.
-                    </p>
-                  </div>
-                  
-                  <Button 
-                    onClick={handleRapidGenerate}
-                    disabled={rapidLoading || !rapidInput.trim() || rapidFoundWords.some(w => w.toLowerCase() === "frete")}
-                    className={`w-full md:w-64 h-11 text-white font-black rounded-lg shadow-xl transition-all active:scale-[0.98] disabled:opacity-70 uppercase tracking-tight shrink-0 ${
-                      rapidFoundWords.some(w => w.toLowerCase() === "frete") 
-                        ? 'bg-red-500 hover:bg-red-500 shadow-red-200 cursor-not-allowed' 
-                        : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100'
-                    }`}
-                  >
-                    {rapidLoading ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : rapidFoundWords.some(w => w.toLowerCase() === "frete") ? (
-                      <>
-                        <AlertCircle className="w-4 h-4 mr-2" />
-                        Bloqueado por "Frete"
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        Gerar Descrição Rápida
-                      </>
-                    )}
-                  </Button>
+              <div className="flex flex-col md:flex-row items-center gap-4 justify-between pt-1">
+                <div className="flex-1 p-3 bg-indigo-50/30 rounded-lg border border-indigo-100/30 flex items-start gap-4">
+                  <AlertCircle className="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" />
+                  <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                    <strong>Qualidade Garantida:</strong> O parágrafo de saída integrará de forma fluida os diferenciais, problema do cliente e solução comercial, garantindo excelente leitura rápida sem passar do limite recomendado para marketplaces.
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
+                
+                <Button 
+                  onClick={handleRapidGenerate}
+                  disabled={rapidLoading || !rapidInput.trim() || rapidFoundWords.some(w => w.toLowerCase() === "frete")}
+                  className={`w-full md:w-64 h-11 text-white font-black rounded-lg shadow-xl transition-all active:scale-[0.98] disabled:opacity-70 uppercase tracking-tight shrink-0 ${
+                    rapidFoundWords.some(w => w.toLowerCase() === "frete") 
+                      ? 'bg-red-500 hover:bg-red-500 shadow-red-200 cursor-not-allowed' 
+                      : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100'
+                  }`}
+                >
+                  {rapidLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : rapidFoundWords.some(w => w.toLowerCase() === "frete") ? (
+                    <>
+                      <AlertCircle className="w-4 h-4 mr-2" />
+                      Bloqueado por "Frete"
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Gerar Descrição Rápida
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
 
             {/* Results Area for Rapido */}
             <div className="space-y-8 min-h-px">

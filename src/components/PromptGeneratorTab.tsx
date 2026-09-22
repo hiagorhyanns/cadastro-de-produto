@@ -1181,7 +1181,7 @@ export const PromptGeneratorTab: React.FC = () => {
                   ) : (
                     <>
                       <Copy className="w-3.5 h-3.5" />
-                      Copiar Prompt
+                      Copiar
                     </>
                   )}
                 </Button>
