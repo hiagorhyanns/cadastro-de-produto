@@ -202,7 +202,7 @@ export function ToolsTab() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input 
             ref={searchInputRef}
-            className="pl-10 pr-10 h-11 border-slate-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg bg-white shadow-sm"
+            className="pl-10 pr-10 h-11 border-slate-200 focus:border-blue-500 focus:ring-blue-500 rounded-lg bg-white shadow-none"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -224,7 +224,7 @@ export function ToolsTab() {
           className="w-full md:w-auto h-11 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-md px-6"
         >
           <Plus className="w-5 h-5 mr-2" />
-          Adicionar Ferramenta
+          Adicionar
         </Button>
       </div>
 
@@ -315,7 +315,7 @@ export function ToolsTab() {
                       >
                         <a href={tool.url} target="_blank" rel="noopener noreferrer">
                           <ExternalLink className="w-4 h-4 mr-2" />
-                          Abrir Ferramenta
+                          Abrir
                         </a>
                       </Button>
                       

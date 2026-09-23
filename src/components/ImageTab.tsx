@@ -362,7 +362,7 @@ export const ImageTab = ({
 
       {!isGenerationMode && (
         <div className="flex justify-center mb-8">
-          <div className="flex flex-wrap items-center justify-center gap-1 bg-white p-1.5 rounded-xl border border-gray-100 max-w-fit shadow-none">
+          <div className="flex flex-wrap items-center justify-center gap-1 max-w-fit">
             {[
               { id: "principal", label: "Principal", icon: ImageIcon },
               { id: "ambientada", label: "Ambientada", icon: Home },

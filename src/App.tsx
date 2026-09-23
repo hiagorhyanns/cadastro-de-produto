@@ -341,9 +341,18 @@ export default function App() {
           <div className="flex h-16 items-center justify-between gap-2 lg:gap-4">
             {/* Brand Logo & Name */}
             <div className="flex items-center shrink-0">
-              <span className="font-black text-[18px] tracking-tight uppercase text-white transition-all duration-300 whitespace-nowrap select-none">
-                CADASTRO DE PRODUTO
-              </span>
+              <button 
+                onClick={() => setActiveTab("seo")} 
+                className="flex items-center focus:outline-none py-0.5"
+                title="Cadastro de Produto"
+              >
+                <img 
+                  src="/logo-cadastro-de-produto.png?v=3" 
+                  alt="Cadastro de Produto" 
+                  className="h-10 sm:h-12 md:h-14 w-auto max-w-[220px] sm:max-w-[280px] md:max-w-[340px] object-contain select-none"
+                  referrerPolicy="no-referrer"
+                />
+              </button>
             </div>
 
             {/* Desktop Navigation */}

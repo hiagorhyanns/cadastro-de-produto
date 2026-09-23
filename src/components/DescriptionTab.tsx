@@ -222,7 +222,7 @@ export const DescriptionTab = ({
 
       <div className="space-y-8">
         {/* Custom Submenu Tabs Navigation */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-gray-100 pb-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2">
           <div className="space-y-0.5">
             <h2 className="text-xl font-black text-slate-900 tracking-tight">Otimizador de Descrições</h2>
             <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-widest">Enriqueça ou reescreva o texto do produto</p>
@@ -250,7 +250,7 @@ export const DescriptionTab = ({
               }`}
             >
               <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              Rápido (Simples)
+              Simples
             </button>
           </div>
         </div>
@@ -261,7 +261,7 @@ export const DescriptionTab = ({
             {/* Main Input Area */}
             <div className="space-y-4">
               <Textarea 
-                className="h-[300px] min-h-[300px] w-full bg-white border-slate-200 focus:border-blue-500 shadow-none transition-all rounded-lg p-4 text-sm leading-relaxed overflow-y-auto resize-y"
+                className="h-[300px] min-h-[300px] w-full bg-white border-0 border-none shadow-none focus:border-0 focus:ring-0 focus-visible:ring-0 focus-visible:border-transparent outline-none transition-all rounded-lg p-4 text-sm leading-relaxed overflow-y-auto resize-y"
                 value={originalDesc}
                 onChange={(e) => setOriginalDesc(e.target.value)}
                 placeholder="Cole ou digite a descrição do produto..."
@@ -601,7 +601,7 @@ export const DescriptionTab = ({
             {/* Input Form for Rapido */}
             <div className="space-y-4">
               <Textarea 
-                className="h-[180px] min-h-[180px] w-full bg-white border-slate-200 focus:border-blue-500 shadow-none transition-all rounded-lg p-4 text-sm leading-relaxed overflow-y-auto resize-y"
+                className="h-[180px] min-h-[180px] w-full bg-white border-0 border-none shadow-none focus:border-0 focus:ring-0 focus-visible:ring-0 focus-visible:border-transparent outline-none transition-all rounded-lg p-4 text-sm leading-relaxed overflow-y-auto resize-y"
                 value={rapidInput}
                 onChange={(e) => setRapidInput(e.target.value)}
                 placeholder="Rascunho de texto ou dados básicos do produto..."
