@@ -91,7 +91,8 @@ export function SEOTab({
                   <Input 
                     value={seoFormData.name}
                     onChange={(e) => setSeoFormData({...seoFormData, name: e.target.value})}
-                    className="h-11 border-slate-200 focus:border-blue-500 rounded-lg bg-white shadow-none"
+                    className="h-11 border-slate-200 focus:border-blue-500 rounded-[15px] bg-white shadow-none"
+                    style={{ borderRadius: "15px" }}
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -99,7 +100,8 @@ export function SEOTab({
                   <Input 
                     value={seoFormData.model}
                     onChange={(e) => setSeoFormData({...seoFormData, model: e.target.value})}
-                    className="h-11 border-slate-200 focus:border-blue-500 rounded-lg bg-white shadow-none"
+                    className="h-11 border-slate-200 focus:border-blue-500 rounded-[15px] bg-white shadow-none"
+                    style={{ borderRadius: "15px" }}
                   />
                 </div>
               </div>
@@ -110,7 +112,8 @@ export function SEOTab({
                   <Input 
                     value={seoFormData.brand}
                     onChange={(e) => setSeoFormData({...seoFormData, brand: e.target.value})}
-                    className="h-11 border-slate-200 focus:border-blue-500 rounded-lg bg-white shadow-none"
+                    className="h-11 border-slate-200 focus:border-blue-500 rounded-[15px] bg-white shadow-none"
+                    style={{ borderRadius: "15px" }}
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -118,7 +121,8 @@ export function SEOTab({
                   <Input 
                     value={seoFormData.voltage}
                     onChange={(e) => setSeoFormData({...seoFormData, voltage: e.target.value})}
-                    className="h-11 border-slate-200 focus:border-blue-500 rounded-lg bg-white shadow-none"
+                    className="h-11 border-slate-200 focus:border-blue-500 rounded-[15px] bg-white shadow-none"
+                    style={{ borderRadius: "15px" }}
                   />
                 </div>
               </div>
@@ -128,14 +132,16 @@ export function SEOTab({
                 <Textarea 
                   value={seoFormData.differentials}
                   onChange={(e) => setSeoFormData({...seoFormData, differentials: e.target.value})}
-                  className="min-h-[80px] border-slate-200 focus:border-blue-500 rounded-lg resize-none bg-white shadow-none"
+                  className="min-h-[80px] border-slate-200 focus:border-blue-500 rounded-[15px] resize-none bg-white shadow-none"
+                  style={{ borderRadius: "15px" }}
                 />
               </div>
 
               <Button 
                 type="submit"
                 disabled={seoLoading || !seoFormData.name || !seoFormData.brand}
-                className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest rounded-lg shadow-xl shadow-blue-200 transition-all group relative overflow-hidden active:scale-95 disabled:opacity-50"
+                className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest rounded-[15px] shadow-xl shadow-blue-200 transition-all group relative overflow-hidden active:scale-95 disabled:opacity-50"
+                style={{ borderRadius: "15px" }}
               >
                 {seoLoading ? (
                   <div className="flex items-center gap-3">
@@ -214,7 +220,8 @@ export function SEOTab({
                   </div>
                   <Button 
                     onClick={() => handleCopy(seoResult.googleMeliTitle)}
-                    className="w-full h-11 bg-white hover:bg-slate-50 text-blue-600 border-2 border-blue-600 font-black uppercase tracking-widest text-[10px]"
+                    className="w-full h-11 bg-white hover:bg-slate-50 text-blue-600 border-2 border-blue-600 font-black uppercase tracking-widest text-[10px] rounded-[15px]"
+                    style={{ borderRadius: "15px" }}
                   >
                     <Copy className="w-3.5 h-3.5 mr-2" />
                     Copiar Título
@@ -242,7 +249,8 @@ export function SEOTab({
                   <Button 
                     variant="outline"
                     onClick={() => handleCopy(seoResult.acimaqTitle)}
-                    className="w-full h-11 border-slate-200 hover:border-blue-400 hover:text-blue-600 font-black uppercase tracking-widest text-[10px]"
+                    className="w-full h-11 border-slate-200 hover:border-blue-400 hover:text-blue-600 font-black uppercase tracking-widest text-[10px] rounded-[15px]"
+                    style={{ borderRadius: "15px" }}
                   >
                     <Copy className="w-3.5 h-3.5 mr-2" />
                     Copiar Título

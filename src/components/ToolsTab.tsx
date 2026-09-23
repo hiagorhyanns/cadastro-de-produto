@@ -229,12 +229,13 @@ export function ToolsTab() {
       </div>
 
       {categories.length > 0 && searchQuery === "" && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-3">
           {categories.map(cat => (
             <Badge 
               key={cat} 
               variant="outline" 
-              className="cursor-pointer hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors py-1 px-3"
+              className="cursor-pointer hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-colors h-auto text-xs sm:text-sm font-medium rounded-xl"
+              style={{ padding: "20px" }}
               onClick={() => setSearchQuery(cat)}
             >
               {cat}
