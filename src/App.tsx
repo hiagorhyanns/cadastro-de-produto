@@ -356,30 +356,26 @@ export default function App() {
             </div>
 
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center tracking-tight min-width-0 flex-1 justify-center max-w-fit">
+            <nav className="hidden md:flex items-center tracking-tight min-width-0 flex-1 justify-center max-w-fit gap-1">
               <button 
                 onClick={() => setActiveTab("seo")}
-                className={`flex items-center gap-1 lg:gap-2 px-2 lg:px-4 xl:px-6 py-2 rounded-lg text-[11px] lg:text-[13px] xl:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === "seo" ? "text-white" : "text-blue-100/60 hover:text-white"}`}
+                className={`relative flex items-center gap-1 lg:gap-2 px-3 lg:px-5 xl:px-6 py-2.5 rounded-lg text-[11px] lg:text-[13px] xl:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === "seo" ? "text-white" : "text-blue-100/60 hover:text-white"}`}
               >
                 <Search className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${activeTab === "seo" ? "text-white" : "text-blue-100/60"}`} />
                 Titulo
               </button>
 
-              <div className="w-[1px] h-4 bg-white/10 mx-1" />
-
               <button 
                 onClick={() => setActiveTab("formatar")}
-                className={`flex items-center gap-1 lg:gap-2 px-2 lg:px-4 xl:px-6 py-2 rounded-lg text-[11px] lg:text-[13px] xl:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === "formatar" ? "text-white" : "text-blue-100/60 hover:text-white"}`}
+                className={`relative flex items-center gap-1 lg:gap-2 px-3 lg:px-5 xl:px-6 py-2.5 rounded-lg text-[11px] lg:text-[13px] xl:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === "formatar" ? "text-white" : "text-blue-100/60 hover:text-white"}`}
               >
                 <FileText className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${activeTab === "formatar" ? "text-white" : "text-blue-100/60"}`} />
                 Descrição
               </button>
 
-              <div className="w-[1px] h-4 bg-white/10 mx-1" />
-
               <button 
                 onClick={() => setActiveTab("imagem")}
-                className={`flex items-center gap-1 lg:gap-2 px-2 lg:px-4 xl:px-6 py-2 rounded-lg text-[11px] lg:text-[13px] xl:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === "imagem" ? "text-white" : "text-blue-100/60 hover:text-white"}`}
+                className={`relative flex items-center gap-1 lg:gap-2 px-3 lg:px-5 xl:px-6 py-2.5 rounded-lg text-[11px] lg:text-[13px] xl:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === "imagem" ? "text-white" : "text-blue-100/60 hover:text-white"}`}
               >
                 <ImageIcon className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${activeTab === "imagem" ? "text-white" : "text-blue-100/60"}`} />
                 Imagem
@@ -393,31 +389,25 @@ export default function App() {
                 )}
               </button>
 
-              <div className="w-[1px] h-4 bg-white/10 mx-1" />
-
               <button 
                 onClick={() => setActiveTab("prompts")}
-                className={`flex items-center gap-1 lg:gap-2 px-2 lg:px-4 xl:px-6 py-2 rounded-lg text-[11px] lg:text-[13px] xl:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === "prompts" ? "text-white" : "text-blue-100/60 hover:text-white"}`}
+                className={`relative flex items-center gap-1 lg:gap-2 px-3 lg:px-5 xl:px-6 py-2.5 rounded-lg text-[11px] lg:text-[13px] xl:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === "prompts" ? "text-white" : "text-blue-100/60 hover:text-white"}`}
               >
                 <Sparkles className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${activeTab === "prompts" ? "text-white" : "text-blue-100/60"}`} />
                 IA
               </button>
 
-              <div className="w-[1px] h-4 bg-white/10 mx-1" />
-
               <button 
                 onClick={() => setActiveTab("ferramentas")}
-                className={`flex items-center gap-1 lg:gap-2 px-2 lg:px-4 xl:px-6 py-2 rounded-lg text-[11px] lg:text-[13px] xl:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === "ferramentas" ? "text-white" : "text-blue-100/60 hover:text-white"}`}
+                className={`relative flex items-center gap-1 lg:gap-2 px-3 lg:px-5 xl:px-6 py-2.5 rounded-lg text-[11px] lg:text-[13px] xl:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === "ferramentas" ? "text-white" : "text-blue-100/60 hover:text-white"}`}
               >
                 <Wrench className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${activeTab === "ferramentas" ? "text-white" : "text-blue-100/60"}`} />
                 APP
               </button>
 
-              <div className="w-[1px] h-4 bg-white/10 mx-1" />
-
               <button 
                 onClick={() => setActiveTab("treinamento")}
-                className={`flex items-center gap-1 lg:gap-2 px-2 lg:px-4 xl:px-6 py-2 rounded-lg text-[11px] lg:text-[13px] xl:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === "treinamento" ? "text-white" : "text-blue-100/60 hover:text-white"}`}
+                className={`relative flex items-center gap-1 lg:gap-2 px-3 lg:px-5 xl:px-6 py-2.5 rounded-lg text-[11px] lg:text-[13px] xl:text-sm font-bold transition-all duration-300 whitespace-nowrap ${activeTab === "treinamento" ? "text-white" : "text-blue-100/60 hover:text-white"}`}
               >
                 <PlusCircle className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${activeTab === "treinamento" ? "text-white" : "text-blue-100/60"}`} />
                 Outros
@@ -433,60 +423,50 @@ export default function App() {
       {/* Mobile Navigation */}
       <div className="md:hidden bg-blue-600 border-b border-blue-700 p-2">
         <ScrollArea className="w-full">
-          <div className="flex items-center p-1 w-max">
+          <div className="flex items-center p-1 w-max gap-1">
             <button 
               onClick={() => setActiveTab("seo")}
-              className={`px-4 py-3 rounded-lg text-[10px] font-black uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "seo" ? "text-white" : "text-white/40"}`}
+              className={`relative px-4 py-3 rounded-lg text-[10px] font-black uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "seo" ? "text-white" : "text-white/40"}`}
             >
               <Search className="w-4 h-4" />
               Titulo
             </button>
-            
-            <div className="w-[1px] h-4 bg-white/10 mx-1" />
 
             <button 
               onClick={() => setActiveTab("formatar")}
-              className={`px-4 py-3 rounded-lg text-[10px] font-black uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "formatar" ? "text-white" : "text-white/40"}`}
+              className={`relative px-4 py-3 rounded-lg text-[10px] font-black uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "formatar" ? "text-white" : "text-white/40"}`}
             >
               <FileText className="w-4 h-4" />
               Descrição
             </button>
 
-            <div className="w-[1px] h-4 bg-white/10 mx-1" />
-
             <button 
               onClick={() => setActiveTab("imagem")}
-              className={`px-4 py-3 rounded-lg text-[10px] font-black uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "imagem" ? "text-white" : "text-white/40"}`}
+              className={`relative px-4 py-3 rounded-lg text-[10px] font-black uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "imagem" ? "text-white" : "text-white/40"}`}
             >
               <ImageIcon className="w-4 h-4" />
               Imagem
             </button>
 
-            <div className="w-[1px] h-4 bg-white/10 mx-1" />
-
             <button 
               onClick={() => setActiveTab("prompts")}
-              className={`px-4 py-3 rounded-lg text-[10px] font-black uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "prompts" ? "text-white" : "text-white/40"}`}
+              className={`relative px-4 py-3 rounded-lg text-[10px] font-black uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "prompts" ? "text-white" : "text-white/40"}`}
             >
               <Sparkles className="w-4 h-4" />
               IA
             </button>
 
-            <div className="w-[1px] h-4 bg-white/10 mx-1" />
-
             <button 
               onClick={() => setActiveTab("ferramentas")}
-              className={`px-4 py-3 rounded-lg text-[10px] font-black uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "ferramentas" ? "text-white" : "text-white/40"}`}
+              className={`relative px-4 py-3 rounded-lg text-[10px] font-black uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "ferramentas" ? "text-white" : "text-white/40"}`}
             >
               <Wrench className="w-4 h-4" />
               APP
             </button>
 
-            <div className="w-[1px] h-4 bg-white/10 mx-1" />
-
             <button 
               onClick={() => setActiveTab("treinamento")}
-              className={`px-4 py-3 rounded-lg text-[10px] font-black uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "treinamento" ? "text-white" : "text-white/40"}`}
+              className={`relative px-4 py-3 rounded-lg text-[10px] font-black uppercase tracking-wider flex flex-col items-center justify-center gap-1 transition-all ${activeTab === "treinamento" ? "text-white" : "text-white/40"}`}
             >
               <PlusCircle className="w-4 h-4" />
               Outros

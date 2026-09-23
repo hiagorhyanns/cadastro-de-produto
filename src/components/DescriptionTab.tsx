@@ -166,35 +166,44 @@ export const DescriptionTab = ({
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -50, opacity: 0 }}
-            className="sticky top-16 z-50 bg-red-600 text-white p-6 shadow-2xl rounded-b-xl mb-10 border-b-4 border-red-700/50 overflow-hidden"
+            style={{ borderRadius: "15px" }}
+            className="sticky top-16 z-50 bg-red-600 text-white p-6 shadow-none rounded-[15px] mb-10 border border-slate-200 overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 blur-[90px] rounded-full -mr-32 -mt-32 animate-pulse" />
             <div className="max-w-7xl mx-auto flex items-center justify-between gap-6 px-4 sm:px-6 lg:px-8 relative z-10">
               <div className="flex items-center gap-5">
-                <div className="w-14 h-14 bg-white/20 rounded-lg flex items-center justify-center border border-white/20 shadow-inner">
+                <div style={{ borderRadius: "15px" }} className="w-14 h-14 bg-white/20 rounded-[15px] flex items-center justify-center border border-white/20 shadow-none">
                   <AlertCircle className="w-7 h-7 text-white" />
                 </div>
-                <div className="space-y-1">
-                  <h3 className="text-lg font-black uppercase tracking-tight">Termos Restritos Detectados!</h3>
+                <div className="space-y-1.5">
+                  <h3 className="text-lg font-black uppercase tracking-tight text-white">Termos Restritos Detectados!</h3>
                   <p className="text-sm font-medium text-red-50/90 leading-relaxed max-w-3xl">
                     Identificamos palavras proibidas no seu texto que podem prejudicar o SEO ou violar políticas de marketplace:
-                    <br />
-                    <span className="font-bold underline decoration-white/30 decoration-2">
-                      {safeFoundWords.map(word => {
-                        const isFrete = word.toLowerCase() === "frete";
-                        const label = isFrete ? "frete (PROIBIDO VIA VAREJO)" : word;
-                        const count = safeWordCounts[word] || 1;
-                        return `${label} (${count}x)`;
-                      }).join(", ")}
-                    </span>
                   </p>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {safeFoundWords.map(word => {
+                      const isFrete = word.toLowerCase() === "frete";
+                      const label = isFrete ? "frete (PROIBIDO VIA VAREJO)" : word;
+                      const count = safeWordCounts[word] || 1;
+                      return (
+                        <span 
+                          key={word}
+                          style={{ borderRadius: "15px" }}
+                          className="bg-red-700 text-white font-bold text-xs uppercase px-3 py-1 rounded-[15px] border border-red-800 shadow-none inline-flex items-center"
+                        >
+                          {label} ({count}x)
+                        </span>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
               <Button 
                 variant="ghost" 
                 size="icon" 
+                style={{ borderRadius: "15px" }}
                 onClick={() => setShowForbiddenAlert(false)}
-                className="h-12 w-12 text-white hover:bg-white/20 rounded-lg transition-all active:scale-90 flex-shrink-0"
+                className="h-12 w-12 text-white hover:bg-white/20 rounded-[15px] transition-all active:scale-90 flex-shrink-0"
               >
                 <X className="w-6 h-6" />
               </Button>
@@ -207,35 +216,44 @@ export const DescriptionTab = ({
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -50, opacity: 0 }}
-            className="sticky top-16 z-50 bg-red-600 text-white p-6 shadow-2xl rounded-b-xl mb-10 border-b-4 border-red-700/50 overflow-hidden"
+            style={{ borderRadius: "15px" }}
+            className="sticky top-16 z-50 bg-red-600 text-white p-6 shadow-none rounded-[15px] mb-10 border border-slate-200 overflow-hidden"
           >
             <div className="absolute top-0 right-0 w-80 h-80 bg-white/10 blur-[90px] rounded-full -mr-32 -mt-32 animate-pulse" />
             <div className="max-w-7xl mx-auto flex items-center justify-between gap-6 px-4 sm:px-6 lg:px-8 relative z-10">
               <div className="flex items-center gap-5">
-                <div className="w-14 h-14 bg-white/20 rounded-lg flex items-center justify-center border border-white/20 shadow-inner">
+                <div style={{ borderRadius: "15px" }} className="w-14 h-14 bg-white/20 rounded-[15px] flex items-center justify-center border border-white/20 shadow-none">
                   <AlertCircle className="w-7 h-7 text-white" />
                 </div>
-                <div className="space-y-1">
-                  <h3 className="text-lg font-black uppercase tracking-tight">Termos Restritos Detectados na Geração Rápida!</h3>
+                <div className="space-y-1.5">
+                  <h3 className="text-lg font-black uppercase tracking-tight text-white">Termos Restritos Detectados na Geração Rápida!</h3>
                   <p className="text-sm font-medium text-red-50/90 leading-relaxed max-w-3xl">
                     Identificamos palavras proibidas no seu rascunho de texto que podem prejudicar o SEO:
-                    <br />
-                    <span className="font-bold underline decoration-white/30 decoration-2">
-                      {rapidFoundWords.map(word => {
-                        const isFrete = word.toLowerCase() === "frete";
-                        const label = isFrete ? "frete (PROIBIDO VIA VAREJO)" : word;
-                        const count = rapidWordCounts[word] || 1;
-                        return `${label} (${count}x)`;
-                      }).join(", ")}
-                    </span>
                   </p>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {rapidFoundWords.map(word => {
+                      const isFrete = word.toLowerCase() === "frete";
+                      const label = isFrete ? "frete (PROIBIDO VIA VAREJO)" : word;
+                      const count = rapidWordCounts[word] || 1;
+                      return (
+                        <span 
+                          key={word}
+                          style={{ borderRadius: "15px" }}
+                          className="bg-red-700 text-white font-bold text-xs uppercase px-3 py-1 rounded-[15px] border border-red-800 shadow-none inline-flex items-center"
+                        >
+                          {label} ({count}x)
+                        </span>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
               <Button 
                 variant="ghost" 
                 size="icon" 
+                style={{ borderRadius: "15px" }}
                 onClick={() => setRapidFoundWords([])}
-                className="h-12 w-12 text-white hover:bg-white/20 rounded-lg transition-all active:scale-90 flex-shrink-0"
+                className="h-12 w-12 text-white hover:bg-white/20 rounded-[15px] transition-all active:scale-90 flex-shrink-0"
               >
                 <X className="w-6 h-6" />
               </Button>
@@ -252,26 +270,24 @@ export const DescriptionTab = ({
             {!rewriteResult && !rewriteLoading && (
               <div className="space-y-6 animate-in fade-in duration-300">
                 {/* Submenu Header */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2">
-                  <div className="space-y-0.5">
-                    <h2 className="text-xl font-black text-slate-900 tracking-tight">Otimizador de Descrições</h2>
-                    <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-widest">Enriqueça ou reescreva o texto do produto</p>
-                  </div>
-                  <div className="flex bg-slate-100/60 p-1 rounded-xl border border-slate-200/40 w-full sm:w-auto overflow-hidden">
+                <div className="flex items-center justify-end pb-2">
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={() => setActiveSubTab("completo")}
                       type="button"
-                      className="flex-1 sm:flex-initial py-2 px-5 rounded-lg font-black text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 bg-white text-blue-600 shadow-md border border-slate-200/10"
+                      style={{ borderRadius: "15px" }}
+                      className="py-2 px-5 font-bold text-xs uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 bg-white text-black border border-slate-200 shadow-none rounded-[15px]"
                     >
-                      <FileText className="w-3.5 h-3.5" />
+                      <FileText className="w-3.5 h-3.5 text-black" />
                       Completo
                     </button>
                     <button
                       onClick={() => setActiveSubTab("rapido")}
                       type="button"
-                      className="flex-1 sm:flex-initial py-2 px-5 rounded-lg font-black text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 text-slate-500 hover:text-slate-800"
+                      style={{ borderRadius: "15px" }}
+                      className="py-2 px-5 font-bold text-xs uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 text-slate-400 hover:text-slate-600 bg-transparent border border-transparent shadow-none rounded-[15px]"
                     >
-                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                      <Sparkles className="w-3.5 h-3.5 text-slate-400" />
                       Simples
                     </button>
                   </div>
@@ -280,11 +296,11 @@ export const DescriptionTab = ({
                 {/* Main Input Area */}
                 <div className="space-y-4">
                   <Textarea 
-                    className="h-[300px] min-h-[300px] w-full bg-white border border-slate-200 focus:border-slate-300 focus:ring-2 focus:ring-slate-100 outline-none transition-all p-4 text-sm leading-relaxed overflow-y-auto resize-y"
+                    className="h-[300px] min-h-[300px] w-full bg-white border border-slate-200 focus:border-slate-300 focus:ring-2 focus:ring-slate-100 outline-none transition-all p-4 text-sm leading-relaxed overflow-y-auto resize-y placeholder:text-slate-400 shadow-none rounded-[15px]"
                     style={{ borderRadius: "15px" }}
                     value={safeOriginalDesc}
                     onChange={(e) => setOriginalDesc(e.target.value)}
-                    placeholder="Cole ou digite a descrição do produto..."
+                    placeholder="Enriqueça ou reescreva o texto do produto"
                   />
 
                   {/* Controls Row and Critical Alert */}
@@ -298,10 +314,11 @@ export const DescriptionTab = ({
                     <Button 
                       onClick={handleRewrite}
                       disabled={rewriteLoading || !safeOriginalDesc.trim() || hasFrete}
-                      className={`w-full md:w-64 h-11 text-white font-black rounded-lg shadow-xl transition-all active:scale-[0.98] disabled:opacity-70 uppercase tracking-tight shrink-0 ${
+                      style={{ borderRadius: "15px" }}
+                      className={`w-full md:w-64 h-11 text-white font-black rounded-[15px] shadow-none border border-slate-200 transition-all active:scale-[0.98] disabled:opacity-70 uppercase tracking-tight shrink-0 ${
                         hasFrete 
-                          ? 'bg-red-500 hover:bg-red-500 shadow-red-200 cursor-not-allowed' 
-                          : 'bg-blue-600 hover:bg-blue-700 shadow-blue-200'
+                          ? 'bg-red-600 hover:bg-red-600 cursor-not-allowed' 
+                          : 'bg-blue-600 hover:bg-blue-700'
                       }`}
                     >
                       {rewriteLoading ? (
@@ -323,9 +340,9 @@ export const DescriptionTab = ({
 
                 {/* Secondary Info before generating (Restricted Terms if found in input) */}
                 {safeFoundWords.length > 0 && (
-                  <Card className="border border-slate-200 shadow-none overflow-hidden" style={{ borderRadius: "15px" }}>
-                    <CardHeader className="p-6 pb-3 border-b border-gray-100">
-                      <CardTitle className="text-xs font-black uppercase tracking-widest text-red-500">Termos Restritos Encontrados na Entrada</CardTitle>
+                  <Card className="border border-slate-200 shadow-none overflow-hidden rounded-[15px]" style={{ borderRadius: "15px" }}>
+                    <CardHeader className="p-6 pb-3 border-b border-slate-200">
+                      <CardTitle className="text-xs font-black uppercase tracking-widest text-red-600">Termos Restritos Encontrados na Entrada</CardTitle>
                     </CardHeader>
                     <CardContent className="p-6">
                       <ScrollArea className="h-[100px] pr-4">
@@ -334,7 +351,8 @@ export const DescriptionTab = ({
                             <Badge 
                               key={i} 
                               variant="destructive"
-                              className="text-[10px] py-1.5 px-3 rounded-lg transition-all duration-300 font-bold uppercase tracking-wider bg-red-500 shadow-lg shadow-red-200"
+                              style={{ borderRadius: "15px" }}
+                              className="text-[10px] py-1.5 px-3 rounded-[15px] transition-all duration-300 font-bold uppercase tracking-wider bg-red-600 text-white border border-red-700 shadow-none hover:bg-red-700"
                             >
                               {word} ({safeWordCounts[word] || 1}x)
                             </Badge>
@@ -350,7 +368,7 @@ export const DescriptionTab = ({
             {/* Loading State: Hidden input, showing full generator loader */}
             {rewriteLoading && (
               <div className="space-y-6 py-8 animate-in fade-in duration-300">
-                <div className="flex items-center justify-between p-6 bg-blue-50/60 border border-blue-100 rounded-2xl">
+                <div style={{ borderRadius: "15px" }} className="flex items-center justify-between p-6 bg-blue-50/60 border border-slate-200 rounded-[15px] shadow-none">
                   <div className="flex items-center gap-3">
                     <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
                     <div>
@@ -359,10 +377,10 @@ export const DescriptionTab = ({
                     </div>
                   </div>
                 </div>
-                <Skeleton className="h-[350px] w-full rounded-2xl bg-gray-100" />
+                <Skeleton style={{ borderRadius: "15px" }} className="h-[350px] w-full rounded-[15px] bg-gray-100 shadow-none border border-slate-200" />
                 <div className="grid md:grid-cols-2 gap-6">
-                  <Skeleton className="h-[250px] w-full rounded-2xl bg-gray-100" />
-                  <Skeleton className="h-[250px] w-full rounded-2xl bg-gray-100" />
+                  <Skeleton style={{ borderRadius: "15px" }} className="h-[250px] w-full rounded-[15px] bg-gray-100 shadow-none border border-slate-200" />
+                  <Skeleton style={{ borderRadius: "15px" }} className="h-[250px] w-full rounded-[15px] bg-gray-100 shadow-none border border-slate-200" />
                 </div>
               </div>
             )}
@@ -376,7 +394,7 @@ export const DescriptionTab = ({
                 className="space-y-8 pb-12 animate-in fade-in duration-300"
               >
                 {/* Header with button to generate a new description */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                <div style={{ borderRadius: "15px" }} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 bg-white rounded-[15px] border border-slate-200 shadow-none">
                   <div>
                     <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
                       <Sparkles className="w-5 h-5 text-blue-600" /> Descrição Gerada com Sucesso
@@ -385,7 +403,8 @@ export const DescriptionTab = ({
                   </div>
                   <Button 
                     onClick={handleResetCompleto}
-                    className="h-11 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-200 flex items-center gap-2 transition-all active:scale-95 shrink-0"
+                    style={{ borderRadius: "15px" }}
+                    className="h-11 px-6 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-[15px] shadow-none border border-slate-200 flex items-center gap-2 transition-all active:scale-95 shrink-0"
                   >
                     <RotateCcw className="w-4 h-4" />
                     Gerar Nova Descrição
@@ -396,14 +415,14 @@ export const DescriptionTab = ({
                 {((rewriteResult.seoKeywords && rewriteResult.seoKeywords.length > 0) || safeFoundWords.length > 0) && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {rewriteResult.seoKeywords && rewriteResult.seoKeywords.length > 0 && (
-                      <Card className="border border-slate-100 shadow-sm rounded-xl bg-white overflow-hidden">
-                        <CardHeader className="p-6 pb-3 border-b border-gray-50">
+                      <Card style={{ borderRadius: "15px" }} className="border border-slate-200 shadow-none rounded-[15px] bg-white overflow-hidden">
+                        <CardHeader className="p-6 pb-3 border-b border-slate-200">
                           <CardTitle className="text-xs font-black uppercase tracking-widest text-orange-600">Palavras-chave SEO</CardTitle>
                         </CardHeader>
                         <CardContent className="p-6">
                           <div className="flex flex-wrap gap-2">
                             {rewriteResult.seoKeywords.map((tag, i) => (
-                              <Badge key={i} className="bg-slate-100 text-slate-600 border-none text-[10px] px-3.5 py-1.5 rounded-lg hover:bg-slate-200 transition-colors uppercase font-bold">
+                              <Badge key={i} style={{ borderRadius: "15px" }} className="bg-slate-100 text-slate-600 border border-slate-200 text-[10px] px-3.5 py-1.5 rounded-[15px] shadow-none hover:bg-slate-200 transition-colors uppercase font-bold">
                                 #{tag}
                               </Badge>
                             ))}
@@ -413,9 +432,9 @@ export const DescriptionTab = ({
                     )}
 
                     {safeFoundWords.length > 0 && (
-                      <Card className="border border-slate-100 shadow-sm rounded-xl bg-white overflow-hidden">
-                        <CardHeader className="p-6 pb-3 border-b border-gray-50">
-                          <CardTitle className="text-xs font-black uppercase tracking-widest text-red-500">Termos Restritos Encontrados</CardTitle>
+                      <Card style={{ borderRadius: "15px" }} className="border border-slate-200 shadow-none rounded-[15px] bg-white overflow-hidden">
+                        <CardHeader className="p-6 pb-3 border-b border-slate-200">
+                          <CardTitle className="text-xs font-black uppercase tracking-widest text-red-600">Termos Restritos Encontrados</CardTitle>
                         </CardHeader>
                         <CardContent className="p-6">
                           <ScrollArea className="h-[90px] pr-4">
@@ -424,7 +443,8 @@ export const DescriptionTab = ({
                                 <Badge 
                                   key={i} 
                                   variant="destructive"
-                                  className="text-[10px] py-1.5 px-3 rounded-lg transition-all duration-300 font-bold uppercase tracking-wider bg-red-500 shadow-lg shadow-red-200"
+                                  style={{ borderRadius: "15px" }}
+                                  className="text-[10px] py-1.5 px-3 rounded-[15px] transition-all duration-300 font-bold uppercase tracking-wider bg-red-600 text-white border border-red-700 shadow-none hover:bg-red-700"
                                 >
                                   {word} ({safeWordCounts[word] || 1}x)
                                 </Badge>
@@ -438,11 +458,11 @@ export const DescriptionTab = ({
                 )}
 
                 {/* 1. TEXTO PRINCIPAL (SAÍDA 1 - Completo) */}
-                <Card className="border border-slate-100 shadow-sm rounded-xl bg-white overflow-hidden">
-                  <CardHeader className="p-8 border-b border-gray-50 bg-gradient-to-r from-orange-50/50 to-white">
+                <Card style={{ borderRadius: "15px" }} className="border border-slate-200 shadow-none rounded-[15px] bg-white overflow-hidden">
+                  <CardHeader className="p-8 border-b border-slate-200 bg-gradient-to-r from-orange-50/50 to-white">
                     <div className="flex items-center justify-between gap-4 flex-wrap">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-orange-600 rounded-lg flex items-center justify-center shadow-lg shadow-orange-200">
+                        <div style={{ borderRadius: "15px" }} className="w-10 h-10 bg-orange-600 rounded-[15px] flex items-center justify-center border border-slate-200 shadow-none">
                           <FileText className="w-5 h-5 text-white" />
                         </div>
                         <div>
@@ -454,7 +474,8 @@ export const DescriptionTab = ({
                         <Button 
                           variant="default" 
                           size="lg" 
-                          className="rounded-lg h-11 px-7 font-black bg-blue-600 hover:bg-blue-700 text-white shadow-xl shadow-blue-100 transition-all active:scale-95" 
+                          style={{ borderRadius: "15px" }}
+                          className="rounded-[15px] h-11 px-7 font-black bg-blue-600 hover:bg-blue-700 text-white shadow-none border border-slate-200 transition-all active:scale-95" 
                           onClick={() => {
                             navigator.clipboard.writeText(rewriteResult.formattedDesc || "");
                             setCopyAlert(true);
@@ -471,7 +492,8 @@ export const DescriptionTab = ({
                               initial={{ opacity: 0, y: 10, scale: 0.95 }}
                               animate={{ opacity: 1, y: 0, scale: 1 }}
                               exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                              className="absolute top-full left-1/2 -translate-x-1/2 mt-3 z-50 bg-green-600 text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-lg shadow-xl flex items-center gap-2 whitespace-nowrap"
+                              style={{ borderRadius: "15px" }}
+                              className="absolute top-full left-1/2 -translate-x-1/2 mt-3 z-50 bg-green-600 text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-[15px] shadow-none border border-slate-200 flex items-center gap-2 whitespace-nowrap"
                             >
                               <CheckCircle2 className="w-3 h-3" />
                               Copiado com sucesso!
@@ -482,18 +504,18 @@ export const DescriptionTab = ({
                     </div>
                   </CardHeader>
                   <CardContent className="p-8">
-                    <div className="text-gray-700 leading-relaxed text-sm whitespace-pre-wrap font-mono border-l-4 border-orange-200 pl-6 bg-gray-50/50 py-6 rounded-r-lg overflow-x-auto min-h-[350px]">
+                    <div style={{ borderRadius: "15px" }} className="text-gray-700 leading-relaxed text-sm whitespace-pre-wrap font-mono border-l-4 border-orange-200 pl-6 bg-gray-50/50 py-6 rounded-[15px] border border-slate-200 overflow-x-auto min-h-[350px] shadow-none">
                       {rewriteResult.formattedDesc}
                     </div>
                   </CardContent>
                 </Card>
 
                 {/* Meta Descrição Google (Type Description) */}
-                <Card className="border border-slate-100 shadow-sm rounded-xl bg-white overflow-hidden">
-                  <CardHeader className="p-8 pb-0">
+                <Card style={{ borderRadius: "15px" }} className="border border-slate-200 shadow-none rounded-[15px] bg-white overflow-hidden">
+                  <CardHeader className="p-8 pb-5 border-b border-slate-200">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        <div className="w-11 h-11 bg-emerald-50 rounded-lg flex items-center justify-center">
+                        <div style={{ borderRadius: "15px" }} className="w-11 h-11 bg-emerald-50 rounded-[15px] flex items-center justify-center border border-slate-200 shadow-none">
                           <Search className="w-6 h-6 text-emerald-600" />
                         </div>
                         <div className="space-y-0.5">
@@ -508,7 +530,8 @@ export const DescriptionTab = ({
                               initial={{ opacity: 0, x: 20 }}
                               animate={{ opacity: 1, x: 0 }}
                               exit={{ opacity: 0, x: 20 }}
-                              className="flex items-center gap-2 bg-emerald-500 text-white px-4 py-2 rounded-lg shadow-lg shadow-emerald-500/20"
+                              style={{ borderRadius: "15px" }}
+                              className="flex items-center gap-2 bg-emerald-500 text-white px-4 py-2 rounded-[15px] shadow-none border border-slate-200"
                             >
                               <CheckCircle2 className="w-4 h-4" />
                               <span className="text-xs font-bold uppercase tracking-wider">Copiado!</span>
@@ -518,7 +541,8 @@ export const DescriptionTab = ({
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="h-10 px-5 rounded-lg border-gray-200 hover:bg-gray-50 flex items-center gap-2 transition-all active:scale-95"
+                          style={{ borderRadius: "15px" }}
+                          className="h-10 px-5 rounded-[15px] border border-slate-200 hover:bg-gray-50 flex items-center gap-2 transition-all active:scale-95 shadow-none"
                           onClick={() => {
                             navigator.clipboard.writeText(rewriteResult.typeDescription || "");
                             setTypeDescAlert(true);
@@ -532,7 +556,7 @@ export const DescriptionTab = ({
                     </div>
                   </CardHeader>
                   <CardContent className="p-8">
-                    <div className="text-gray-700 leading-relaxed text-sm font-medium font-sans border-l-4 border-emerald-200 pl-6 bg-emerald-50/20 py-4 rounded-r-lg">
+                    <div style={{ borderRadius: "15px" }} className="text-gray-700 leading-relaxed text-sm font-medium font-sans border-l-4 border-emerald-200 pl-6 bg-emerald-50/20 py-4 rounded-[15px] border border-slate-200 shadow-none">
                       {rewriteResult.typeDescription || "Meta descrição não disponível."}
                     </div>
                     <div className="mt-4 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-600">
@@ -544,10 +568,10 @@ export const DescriptionTab = ({
 
                 {/* Dicas de Conteúdo (Insights) */}
                 {Array.isArray(rewriteResult.tips) && rewriteResult.tips.length > 0 && (
-                  <Card className="border border-slate-100 shadow-sm rounded-xl bg-white overflow-hidden">
-                    <CardHeader className="p-8 pb-5">
+                  <Card style={{ borderRadius: "15px" }} className="border border-slate-200 shadow-none rounded-[15px] bg-white overflow-hidden">
+                    <CardHeader className="p-8 pb-5 border-b border-slate-200">
                       <div className="flex items-center gap-4">
-                        <div className="w-11 h-11 bg-indigo-100 rounded-lg flex items-center justify-center shadow-inner">
+                        <div style={{ borderRadius: "15px" }} className="w-11 h-11 bg-indigo-100 rounded-[15px] flex items-center justify-center border border-slate-200 shadow-none">
                           <Lightbulb className="w-6 h-6 text-indigo-600" />
                         </div>
                         <div className="space-y-0.5">
@@ -556,18 +580,18 @@ export const DescriptionTab = ({
                         </div>
                       </div>
                     </CardHeader>
-                    <CardContent className="p-8 pt-0">
+                    <CardContent className="p-8 pt-6">
                       <div className="grid md:grid-cols-2 gap-4">
                         {rewriteResult.tips.map((tip, index) => (
-                          <div key={index} className="flex gap-4 p-4 bg-white rounded-lg border border-slate-100 hover:border-indigo-200 transition-colors shadow-sm">
-                            <div className="flex-shrink-0 w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-[10px] font-black border border-indigo-100">
+                          <div key={index} style={{ borderRadius: "15px" }} className="flex gap-4 p-4 bg-white rounded-[15px] border border-slate-200 hover:border-indigo-200 transition-colors shadow-none">
+                            <div style={{ borderRadius: "15px" }} className="flex-shrink-0 w-6 h-6 rounded-[15px] bg-indigo-50 text-indigo-600 flex items-center justify-center text-[10px] font-black border border-indigo-100 shadow-none">
                               {index + 1}
                             </div>
                             <p className="text-sm font-medium text-slate-600 leading-snug">{tip}</p>
                           </div>
                         ))}
                       </div>
-                      <div className="mt-6 p-4 bg-indigo-50/50 rounded-lg border border-indigo-100/50 flex items-start gap-3">
+                      <div style={{ borderRadius: "15px" }} className="mt-6 p-4 bg-indigo-50/50 rounded-[15px] border border-slate-200 flex items-start gap-3 shadow-none">
                         <Sparkles className="w-4 h-4 text-indigo-400 mt-0.5" />
                         <p className="text-[11px] font-bold uppercase tracking-wider text-indigo-600">
                           Baseado em tendências de busca e dúvidas comuns em marketplaces brasileiros.
@@ -579,9 +603,9 @@ export const DescriptionTab = ({
 
                 {/* Copy Comercial Gerada */}
                 {rewriteResult.commercial && (
-                  <section className="space-y-6 bg-white rounded-xl p-8 border border-slate-100 shadow-sm">
+                  <section style={{ borderRadius: "15px" }} className="space-y-6 bg-white rounded-[15px] p-8 border border-slate-200 shadow-none">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center">
+                      <div style={{ borderRadius: "15px" }} className="w-9 h-9 bg-blue-50 rounded-[15px] flex items-center justify-center border border-slate-200 shadow-none">
                         <FileText className="w-5 h-5 text-blue-600" />
                       </div>
                       <h2 className="text-xl font-black tracking-tight">Copy Comercial Gerada</h2>
@@ -603,7 +627,7 @@ export const DescriptionTab = ({
                           <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-600">Contexto de Uso</h4>
                           <p className="text-gray-700 leading-relaxed text-sm">{rewriteResult.commercial.context}</p>
                         </div>
-                        <div className="p-5 bg-orange-50 rounded-lg border border-orange-100 space-y-1.5">
+                        <div style={{ borderRadius: "15px" }} className="p-5 bg-orange-50 rounded-[15px] border border-slate-200 space-y-1.5 shadow-none">
                           <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-orange-600">Impacto de Venda</h4>
                           <p className="text-orange-900 leading-relaxed text-sm font-bold">{rewriteResult.commercial.benefit}</p>
                         </div>
@@ -623,9 +647,9 @@ export const DescriptionTab = ({
                         { title: "Benefícios", text: rewriteResult.summary.benefits, icon: Sparkles, color: "text-blue-600", bg: "bg-blue-50" },
                         { title: "Público/Local", text: rewriteResult.summary.target, icon: Target, color: "text-emerald-600", bg: "bg-emerald-50" }
                       ].map((card, i) => (
-                        <Card key={i} className="border border-slate-100 shadow-sm rounded-xl bg-white">
+                        <Card key={i} style={{ borderRadius: "15px" }} className="border border-slate-200 shadow-none rounded-[15px] bg-white">
                           <CardHeader className="p-5 pb-2">
-                            <div className={`w-8 h-8 ${card.bg} rounded-lg flex items-center justify-center mb-2`}>
+                            <div style={{ borderRadius: "15px" }} className={`w-8 h-8 ${card.bg} rounded-[15px] flex items-center justify-center mb-2 border border-slate-200 shadow-none`}>
                               <card.icon className={`w-4 h-4 ${card.color}`} />
                             </div>
                             <CardTitle className="text-sm font-bold tracking-tight text-gray-900">{card.title}</CardTitle>
@@ -643,7 +667,7 @@ export const DescriptionTab = ({
 
                 {/* Cross-Sell Section (Acimaq Focus) */}
                 {Array.isArray(rewriteResult.crossSell) && rewriteResult.crossSell.length > 0 && (
-                  <section className="bg-slate-900 rounded-xl p-8 md:p-10 text-white space-y-8 overflow-hidden relative">
+                  <section style={{ borderRadius: "15px" }} className="bg-slate-900 rounded-[15px] p-8 md:p-10 text-white space-y-8 overflow-hidden relative border border-slate-200 shadow-none">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 blur-[120px] rounded-lg -mr-32 -mt-32" />
                     <div className="relative z-10 space-y-2">
                       <div className="flex items-center gap-3 text-blue-400 mb-2">
@@ -654,9 +678,9 @@ export const DescriptionTab = ({
 
                     <div className="grid md:grid-cols-2 gap-6 relative z-10">
                       {rewriteResult.crossSell.map((item, i) => (
-                        <div key={i} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 flex flex-col justify-between hover:bg-white/10 transition-all group hover:scale-[1.01] duration-300">
+                        <div key={i} style={{ borderRadius: "15px" }} className="bg-white/5 backdrop-blur-sm border border-slate-200 rounded-[15px] p-6 flex flex-col justify-between hover:bg-white/10 transition-all group duration-300 shadow-none">
                           <div className="space-y-3">
-                            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center mb-2 shadow-lg shadow-blue-900/20">
+                            <div style={{ borderRadius: "15px" }} className="w-10 h-10 bg-blue-600 rounded-[15px] flex items-center justify-center mb-2 shadow-none border border-slate-200">
                               <PlusCircle className="w-5 h-5 text-white" />
                             </div>
                             <h3 className="text-lg font-bold tracking-tight">{item.name}</h3>
@@ -673,7 +697,8 @@ export const DescriptionTab = ({
                   <Button 
                     onClick={handleResetCompleto}
                     size="lg"
-                    className="h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-xl shadow-blue-200 flex items-center gap-2 transition-all active:scale-95"
+                    style={{ borderRadius: "15px" }}
+                    className="h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-[15px] shadow-none border border-slate-200 flex items-center gap-2 transition-all active:scale-95"
                   >
                     <RotateCcw className="w-4 h-4" />
                     Gerar Nova Descrição
@@ -692,26 +717,24 @@ export const DescriptionTab = ({
             {!rapidResult && !rapidLoading && (
               <div className="space-y-6 animate-in fade-in duration-300">
                 {/* Submenu Header */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2">
-                  <div className="space-y-0.5">
-                    <h2 className="text-xl font-black text-slate-900 tracking-tight">Otimizador de Descrições</h2>
-                    <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-widest">Enriqueça ou reescreva o texto do produto</p>
-                  </div>
-                  <div className="flex bg-slate-100/60 p-1 rounded-xl border border-slate-200/40 w-full sm:w-auto overflow-hidden">
+                <div className="flex items-center justify-end pb-2">
+                  <div className="flex items-center gap-2">
                     <button
                       onClick={() => setActiveSubTab("completo")}
                       type="button"
-                      className="flex-1 sm:flex-initial py-2 px-5 rounded-lg font-black text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 text-slate-500 hover:text-slate-800"
+                      style={{ borderRadius: "20px" }}
+                      className="py-2 px-5 font-bold text-xs uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 text-slate-400 hover:text-slate-600 bg-transparent border border-transparent shadow-none"
                     >
-                      <FileText className="w-3.5 h-3.5" />
+                      <FileText className="w-3.5 h-3.5 text-slate-400" />
                       Completo
                     </button>
                     <button
                       onClick={() => setActiveSubTab("rapido")}
                       type="button"
-                      className="flex-1 sm:flex-initial py-2 px-5 rounded-lg font-black text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center gap-2 bg-white text-blue-600 shadow-md border border-slate-200/10"
+                      style={{ borderRadius: "20px" }}
+                      className="py-2 px-5 font-bold text-xs uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2 bg-white text-black border border-slate-200 shadow-none"
                     >
-                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                      <Sparkles className="w-3.5 h-3.5 text-black" />
                       Simples
                     </button>
                   </div>
@@ -720,11 +743,11 @@ export const DescriptionTab = ({
                 {/* Input Form for Rapido */}
                 <div className="space-y-4">
                   <Textarea 
-                    className="h-[180px] min-h-[180px] w-full bg-white border border-slate-200 focus:border-slate-300 focus:ring-2 focus:ring-slate-100 outline-none transition-all p-4 text-sm leading-relaxed overflow-y-auto resize-y"
+                    className="h-[180px] min-h-[180px] w-full bg-white border border-slate-200 focus:border-slate-300 focus:ring-2 focus:ring-slate-100 outline-none transition-all p-4 text-sm leading-relaxed overflow-y-auto resize-y placeholder:text-slate-400 shadow-none rounded-[15px]"
                     style={{ borderRadius: "15px" }}
                     value={rapidInput}
                     onChange={(e) => setRapidInput(e.target.value)}
-                    placeholder="Rascunho de texto ou dados básicos do produto..."
+                    placeholder="Enriqueça ou reescreva o texto do produto"
                   />
 
                   <div className="flex flex-col md:flex-row items-center gap-4 justify-between pt-1">
@@ -737,10 +760,11 @@ export const DescriptionTab = ({
                     <Button 
                       onClick={handleRapidGenerate}
                       disabled={rapidLoading || !rapidInput.trim() || hasRapidFrete}
-                      className={`w-full md:w-64 h-11 text-white font-black rounded-lg shadow-xl transition-all active:scale-[0.98] disabled:opacity-70 uppercase tracking-tight shrink-0 ${
+                      style={{ borderRadius: "15px" }}
+                      className={`w-full md:w-64 h-11 text-white font-black rounded-[15px] shadow-none border border-slate-200 transition-all active:scale-[0.98] disabled:opacity-70 uppercase tracking-tight shrink-0 ${
                         hasRapidFrete 
-                          ? 'bg-red-500 hover:bg-red-500 shadow-red-200 cursor-not-allowed' 
-                          : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100'
+                          ? 'bg-red-600 hover:bg-red-600 cursor-not-allowed' 
+                          : 'bg-indigo-600 hover:bg-indigo-700'
                       }`}
                     >
                       {rapidLoading ? (
@@ -765,7 +789,7 @@ export const DescriptionTab = ({
             {/* Loading state for Rapido */}
             {rapidLoading && (
               <div className="space-y-6 py-8 animate-in fade-in duration-300">
-                <div className="flex items-center justify-between p-6 bg-indigo-50/60 border border-indigo-100 rounded-2xl">
+                <div style={{ borderRadius: "15px" }} className="flex items-center justify-between p-6 bg-indigo-50/60 border border-slate-200 rounded-[15px] shadow-none">
                   <div className="flex items-center gap-3">
                     <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
                     <div>
@@ -774,7 +798,7 @@ export const DescriptionTab = ({
                     </div>
                   </div>
                 </div>
-                <Skeleton className="h-[220px] w-full rounded-2xl bg-gray-100" />
+                <Skeleton style={{ borderRadius: "15px" }} className="h-[220px] w-full rounded-[15px] bg-gray-100 shadow-none border border-slate-200" />
               </div>
             )}
 
@@ -787,7 +811,7 @@ export const DescriptionTab = ({
                 className="space-y-8 pb-12 animate-in fade-in duration-300"
               >
                 {/* Header with button to generate a new description */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                <div style={{ borderRadius: "15px" }} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 bg-white rounded-[15px] border border-slate-200 shadow-none">
                   <div>
                     <h2 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
                       <Sparkles className="w-5 h-5 text-indigo-600" /> Descrição Rápida Gerada com Sucesso
@@ -796,7 +820,8 @@ export const DescriptionTab = ({
                   </div>
                   <Button 
                     onClick={handleResetRapido}
-                    className="h-11 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-100 flex items-center gap-2 transition-all active:scale-95 shrink-0"
+                    style={{ borderRadius: "15px" }}
+                    className="h-11 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-[15px] shadow-none border border-slate-200 flex items-center gap-2 transition-all active:scale-95 shrink-0"
                   >
                     <RotateCcw className="w-4 h-4" />
                     Gerar Nova Descrição
@@ -804,18 +829,18 @@ export const DescriptionTab = ({
                 </div>
 
                 {/* TEXTO SEO RAPIDO CARDS */}
-                <Card className="border border-slate-100 shadow-sm rounded-xl bg-white overflow-hidden">
-                  <CardHeader className="p-8 border-b border-gray-50 bg-gradient-to-r from-blue-50/50 to-white">
+                <Card style={{ borderRadius: "15px" }} className="border border-slate-200 shadow-none rounded-[15px] bg-white overflow-hidden">
+                  <CardHeader className="p-8 border-b border-slate-200 bg-gradient-to-r from-blue-50/50 to-white">
                     <div className="flex items-center justify-between gap-4 flex-wrap">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-200">
+                        <div style={{ borderRadius: "15px" }} className="w-10 h-10 bg-indigo-600 rounded-[15px] flex items-center justify-center border border-slate-200 shadow-none">
                           <Sparkles className="w-5 h-5 text-white" />
                         </div>
                         <div>
                           <CardTitle className="text-xl font-black tracking-tight font-sans">Descrição Simples com SEO</CardTitle>
                           <div className="flex items-center gap-2 mt-1">
                             <CardDescription className="text-xs font-medium text-gray-400 uppercase tracking-widest font-sans">Opção Rápida - Parágrafo Único</CardDescription>
-                            <Badge variant="outline" className={`text-[9px] px-2 py-0 h-4 border-none font-bold ${(rapidResult.seoParagraph || "").length > 800 ? 'text-red-500 bg-red-50' : 'text-green-500 bg-green-50'}`}>
+                            <Badge variant="outline" style={{ borderRadius: "15px" }} className={`text-[9px] px-2 py-0.5 border border-slate-200 rounded-[15px] font-bold shadow-none ${(rapidResult.seoParagraph || "").length > 800 ? 'text-red-600 bg-red-50' : 'text-green-600 bg-green-50'}`}>
                               {(rapidResult.seoParagraph || "").length}/800 chars
                             </Badge>
                           </div>
@@ -825,7 +850,8 @@ export const DescriptionTab = ({
                         <Button 
                           variant="outline" 
                           size="lg" 
-                          className="rounded-lg h-11 px-7 font-black border-indigo-200 hover:bg-indigo-50 text-indigo-600 transition-all active:scale-95" 
+                          style={{ borderRadius: "15px" }}
+                          className="rounded-[15px] h-11 px-7 font-black border border-slate-200 hover:bg-indigo-50 text-indigo-600 transition-all active:scale-95 shadow-none" 
                           onClick={() => {
                             navigator.clipboard.writeText(rapidResult.seoParagraph || "");
                             setRapidCopyAlert(true);
@@ -842,7 +868,8 @@ export const DescriptionTab = ({
                               initial={{ opacity: 0, y: 10, scale: 0.95 }}
                               animate={{ opacity: 1, y: 0, scale: 1 }}
                               exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                              className="absolute top-full left-1/2 -translate-x-1/2 mt-3 z-50 bg-green-600 text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-lg shadow-xl flex items-center gap-2 whitespace-nowrap"
+                              style={{ borderRadius: "15px" }}
+                              className="absolute top-full left-1/2 -translate-x-1/2 mt-3 z-50 bg-green-600 text-white text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-[15px] shadow-none border border-slate-200 flex items-center gap-2 whitespace-nowrap"
                             >
                               <CheckCircle2 className="w-3 h-3" />
                               Copiado com sucesso!
@@ -853,19 +880,24 @@ export const DescriptionTab = ({
                     </div>
                   </CardHeader>
                   <CardContent className="p-8">
-                    <div className="text-gray-700 leading-relaxed text-sm font-medium font-sans border-l-4 border-indigo-200 pl-6 bg-indigo-50/20 py-4 rounded-r-lg">
+                    <div style={{ borderRadius: "15px" }} className="text-gray-700 leading-relaxed text-sm font-medium font-sans border-l-4 border-indigo-200 pl-6 bg-indigo-50/20 py-4 rounded-[15px] border border-slate-200 shadow-none">
                       {rapidResult.seoParagraph}
                     </div>
 
                     {/* Display restricted words block specifically inside the card if there are any */}
                     {Array.isArray(rapidResult.foundWords) && rapidResult.foundWords.length > 0 && (
-                      <div className="mt-6 p-4 bg-red-50/50 rounded-lg border border-red-100 space-y-2">
+                      <div style={{ borderRadius: "15px" }} className="mt-6 p-4 bg-red-50/50 rounded-[15px] border border-slate-200 space-y-2 shadow-none">
                         <h4 className="text-[10px] font-black uppercase tracking-wider text-red-600 flex items-center gap-1.5">
                           <AlertCircle className="w-3.5 h-3.5" /> Termos Restritos Encontrados na Entrada:
                         </h4>
                         <div className="flex flex-wrap gap-1.5">
                           {rapidResult.foundWords.map((word, i) => (
-                            <Badge key={i} variant="destructive" className="text-[9px] font-bold py-0.5 px-2 rounded font-mono uppercase bg-red-500 border-none text-white">
+                            <Badge 
+                              key={i} 
+                              variant="destructive" 
+                              style={{ borderRadius: "15px" }}
+                              className="text-[10px] font-bold py-1 px-3 rounded-[15px] uppercase bg-red-600 text-white border border-red-700 shadow-none hover:bg-red-700"
+                            >
                               {word} ({(rapidResult.wordCounts && rapidResult.wordCounts[word]) || 1}x)
                             </Badge>
                           ))}
@@ -880,7 +912,8 @@ export const DescriptionTab = ({
                   <Button 
                     onClick={handleResetRapido}
                     size="lg"
-                    className="h-12 px-8 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-xl shadow-indigo-100 flex items-center gap-2 transition-all active:scale-95"
+                    style={{ borderRadius: "15px" }}
+                    className="h-12 px-8 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-[15px] shadow-none border border-slate-200 flex items-center gap-2 transition-all active:scale-95"
                   >
                     <RotateCcw className="w-4 h-4" />
                     Gerar Nova Descrição
