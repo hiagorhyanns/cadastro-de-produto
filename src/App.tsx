@@ -549,6 +549,7 @@ export default function App() {
                 handleRewrite={handleRewrite}
                 rewriteLoading={rewriteLoading}
                 rewriteResult={rewriteResult}
+                setRewriteResult={setRewriteResult}
                 foundWords={foundWords}
                 wordCounts={wordCounts}
                 showForbiddenAlert={showForbiddenAlert}

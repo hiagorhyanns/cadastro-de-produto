@@ -65,12 +65,23 @@ export class ErrorBoundary extends Component<Props, State> {
                 <p className="text-xs text-amber-700 mt-1">
                   Ocorreu um erro temporário de renderização. O restante do aplicativo continua funcionando normalmente.
                 </p>
+                {this.state.error && (
+                  <p className="text-[11px] font-mono text-red-600 mt-2 bg-red-50 p-2 rounded border border-red-100 break-words">
+                    {this.state.error.message || String(this.state.error)}
+                  </p>
+                )}
                 <div className="mt-3 flex items-center gap-2">
                   <button
                     onClick={this.handleReset}
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-semibold shadow-sm transition-colors"
                   >
                     <RefreshCw className="w-3.5 h-3.5" /> Tentar Novamente
+                  </button>
+                  <button
+                    onClick={this.handleReload}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-lg text-xs font-semibold shadow-sm transition-colors"
+                  >
+                    Recarregar Página
                   </button>
                 </div>
               </div>
