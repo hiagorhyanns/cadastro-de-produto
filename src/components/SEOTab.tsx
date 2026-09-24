@@ -59,7 +59,7 @@ export function SEOTab({
   };
 
   return (
-    <div className={`w-full mx-auto ${seoResult || seoLoading ? 'max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8 items-start' : 'max-w-2xl'}`}>
+    <div className={`w-full mx-auto ${seoResult || seoLoading ? 'max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-5 items-start' : 'max-w-2xl'}`}>
       {/* Search Result Banner */}
       <AnimatePresence>
         {seoCopyAlert && (
@@ -80,7 +80,7 @@ export function SEOTab({
       <motion.div 
         initial={{ x: -20, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
-        className="space-y-6"
+        className="space-y-4"
       >
         <Card className="border-0 shadow-none bg-transparent overflow-hidden">
           <CardContent className="p-0 sm:p-2 bg-transparent">
@@ -161,27 +161,27 @@ export function SEOTab({
         </Card>
       </motion.div>
 
-      <div className="space-y-6">
+      <div className="space-y-4">
         {seoLoading ? (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <Card className="border-0 shadow-none bg-white overflow-hidden">
-              <div className="p-8 flex flex-col items-center justify-center gap-4 text-center">
+              <div className="p-6 flex flex-col items-center justify-center gap-3 text-center">
                 <div className="relative">
                   <motion.div 
                     animate={{ rotate: 360 }}
                     transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                    className="w-16 h-16 rounded-full border-4 border-slate-100 border-t-blue-600"
+                    className="w-14 h-14 rounded-full border-4 border-slate-100 border-t-blue-600"
                   />
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <Search className="w-6 h-6 text-blue-600 animate-pulse" />
+                    <Search className="w-5 h-5 text-blue-600 animate-pulse" />
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <h4 className="font-black uppercase tracking-tight text-slate-900">Sincronizando Marketplaces</h4>
+                  <h4 className="font-black uppercase tracking-tight text-slate-900 text-sm">Sincronizando Marketplaces</h4>
                   <p className="text-xs text-slate-400 font-medium">Analisando volumes de busca e concorrentes de elite...</p>
                 </div>
               </div>
-              <div className="p-6 bg-slate-50 space-y-4">
+              <div className="p-4 bg-slate-50 space-y-3">
                 <Skeleton className="h-4 w-3/4 bg-slate-200" />
                 <Skeleton className="h-4 w-full bg-slate-200" />
                 <Skeleton className="h-4 w-5/6 bg-slate-200" />
@@ -190,9 +190,9 @@ export function SEOTab({
           </div>
         ) : seoResult ? (
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
+            className="space-y-4"
           >
             {/* Main Result Cards */}
             <div className="space-y-4">

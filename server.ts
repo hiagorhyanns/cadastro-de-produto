@@ -70,22 +70,26 @@ async function backendCallGeminiWithRetry(params: {
   contents: any;
   config?: any;
 }, functionName: string, endpoint: string): Promise<any> {
-  const maxRetries = 2;
-  const preferredModel = params.model === "gemini-3.8-flash" ? "gemini-flash-lite-latest" : (params.model || "gemini-flash-lite-latest");
-  const models = [
-    preferredModel,
+  const maxRetriesPerModel = 1;
+  const candidateModels = [
+    params.model,
+    "gemini-3-flash-preview",
+    "gemini-3.5-flash",
+    "gemini-3.6-flash",
     "gemini-flash-lite-latest",
-    "gemini-2.5-flash-lite",
-    "gemini-3.1-flash-lite"
+    "gemini-3.1-flash-lite",
+    "gemini-3.5-flash-lite",
+    "gemini-3.8-flash",
+    "gemini-flash-latest"
   ].filter(Boolean);
-  const uniqueModels = Array.from(new Set(models));
+  const uniqueModels = Array.from(new Set(candidateModels));
   
   let lastError: any = null;
   
   for (const currentModel of uniqueModels) {
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    for (let attempt = 0; attempt <= maxRetriesPerModel; attempt++) {
       try {
-        console.log(`[Server Gemini] Request with model=${currentModel}, attempt=${attempt}`);
+        console.log(`[Server Gemini] Request func=${functionName} model=${currentModel} attempt=${attempt}`);
         const response = await ai.models.generateContent({
           ...params,
           model: currentModel
@@ -93,7 +97,8 @@ async function backendCallGeminiWithRetry(params: {
         return response;
       } catch (err: any) {
         lastError = err;
-        const status = err?.status || 500;
+        const rawStatus = Number(err?.status ?? err?.code ?? 500);
+        const status = Number.isFinite(rawStatus) && rawStatus >= 100 && rawStatus < 600 ? rawStatus : 500;
         logTechnicalDetails(functionName, endpoint, currentModel, status, err);
         
         const errorMessage = String(err?.message || err || "").toLowerCase();
@@ -105,23 +110,70 @@ async function backendCallGeminiWithRetry(params: {
           } catch (dnsErr) {}
         }
         
-        if (errorMessage.includes("invalid") || errorMessage.includes("bad request") || errorMessage.includes("schema") || errorMessage.includes("api key") || errorMessage.includes("key not found")) {
+        // Fatal client / authentication errors that should not be retried
+        if (
+          errorMessage.includes("api key not valid") ||
+          errorMessage.includes("api key expired") ||
+          errorMessage.includes("api_key_invalid") ||
+          errorMessage.includes("key not found") ||
+          status === 401 ||
+          status === 403
+        ) {
           throw err;
         }
 
-        if (status === 429 || errorMessage.includes("429") || errorMessage.includes("quota") || errorMessage.includes("resource_exhausted")) {
-          console.log(`[Gemini Engine] Model ${currentModel} reached rate limit, switching to alternate model.`);
+        // If the model does not exist or is unsupported on this tier, skip to next model
+        if (status === 404 || errorMessage.includes("not found") || errorMessage.includes("not supported") || errorMessage.includes("no longer available")) {
+          console.log(`[Gemini Engine] Model ${currentModel} not supported or not found, switching to next model.`);
           break;
         }
 
-        if (status === 503 || errorMessage.includes("503") || errorMessage.includes("unavailable") || errorMessage.includes("demand") || errorMessage.includes("overload") || errorMessage.includes("busy")) {
-          console.log(`[Gemini Engine] Model ${currentModel} busy, switching to alternate model.`);
+        // Hard daily quota or limit 0 is NOT resolvable by waiting a few seconds!
+        const isHardQuotaExceeded =
+          errorMessage.includes("limit: 0") ||
+          (errorMessage.includes("quota") && (
+            errorMessage.includes("perday") ||
+            errorMessage.includes("per day") ||
+            errorMessage.includes("daily") ||
+            errorMessage.includes("day")
+          ));
+
+        if (isHardQuotaExceeded) {
+          console.log(`[Gemini Engine] Model ${currentModel} reached hard/daily quota limit. Immediately switching to alternate model.`);
           break;
         }
-        
-        if (attempt < maxRetries) {
-          const delay = Math.pow(2, attempt) * 1500;
+
+        // Temporary demand spikes (503) or rate limits (429)
+        const isTemporaryDemandOrRateLimit =
+          status === 503 ||
+          status === 429 ||
+          errorMessage.includes("503") ||
+          errorMessage.includes("429") ||
+          errorMessage.includes("demand") ||
+          errorMessage.includes("unavailable") ||
+          errorMessage.includes("resource_exhausted") ||
+          errorMessage.includes("quota") ||
+          errorMessage.includes("overload") ||
+          errorMessage.includes("busy");
+
+        if (isTemporaryDemandOrRateLimit) {
+          if (attempt < maxRetriesPerModel) {
+            const delay = 1000 + Math.floor(Math.random() * 500);
+            console.log(`[Gemini Engine] Model ${currentModel} high demand/busy (status ${status}). Waiting ${delay}ms before retry (${attempt + 1}/${maxRetriesPerModel})...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            continue;
+          } else {
+            console.log(`[Gemini Engine] Model ${currentModel} exhausted retries on high demand. Switching to alternate model.`);
+            break;
+          }
+        }
+
+        // General transient server errors (500, 502, 504, timeout, fetch failed)
+        if (attempt < maxRetriesPerModel) {
+          const delay = 1000 + Math.floor(Math.random() * 400);
+          console.log(`[Gemini Engine] Transient error on ${currentModel} (status ${status}). Retrying in ${delay}ms...`);
           await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
         }
       }
     }
@@ -207,6 +259,20 @@ async function backendCallGeminiImageWithRetry(
           break;
         }
 
+        const isHardQuotaExceeded =
+          errorMessage.includes("limit: 0") ||
+          (errorMessage.includes("quota") && (
+            errorMessage.includes("perday") ||
+            errorMessage.includes("per day") ||
+            errorMessage.includes("daily") ||
+            errorMessage.includes("day")
+          ));
+
+        if (isHardQuotaExceeded) {
+          console.log(`[Gemini Engine Image] Model ${currentModel} reached hard/daily quota limit. Switching to alternate image model.`);
+          break;
+        }
+
         const retryable = status === 429 || status >= 500 ||
           errorMessage.includes("quota") || errorMessage.includes("resource_exhausted") ||
           errorMessage.includes("fetch failed") || errorMessage.includes("timeout") ||
@@ -239,7 +305,7 @@ app.get("/api/gemini/image-health", (_req, res) => {
 // API Endpoints
 app.post("/api/gemini/validateProductFidelity", async (req, res) => {
   const { data } = req.body;
-  const model = "gemini-3.1-flash-lite";
+  const model = "gemini-3-flash-preview";
   const functionName = "validateProductFidelity";
   const endpoint = "/api/gemini/validateProductFidelity";
 
@@ -321,7 +387,7 @@ async function identifyProductFromImage(data: { image: string; mimeType: string;
 
   try {
     const response = await backendCallGeminiWithRetry({
-      model: "gemini-3.1-flash-lite",
+      model: "gemini-3-flash-preview",
       contents: [
         {
           parts: [
@@ -642,7 +708,7 @@ Fundo 100% branco puro #FFFFFF sólido. Preserve todos os detalhes reais do prod
     descricao: data.descricao
   });
 
-  const textModel = "gemini-3.1-flash-lite";
+  const textModel = "gemini-3-flash-preview";
   const systemInstruction = `Você é uma IA de elite especializada em fotografia de produto e marketing para e-commerce.
 Sua tarefa é gerar conteúdo de altíssima fidelidade para o produto: "${productTitleOrName}".
 
@@ -992,7 +1058,7 @@ Questões sobre especificações, compatibilidade ou uso do ${name} - nossa equi
 
 app.post("/api/gemini/rewriteDescription", async (req, res) => {
   const { input } = req.body || {};
-  const model = "gemini-flash-lite-latest";
+  const model = "gemini-3-flash-preview";
   const functionName = "rewriteDescription";
   const endpoint = "/api/gemini/rewriteDescription";
 
@@ -1186,7 +1252,7 @@ Gere o JSON com:
       wordCounts
     });
   } catch (err: any) {
-    console.warn("[rewriteDescription] Gemini request failed or quota exceeded, using high-quality structured fallback:", err?.message || err);
+    console.warn("[rewriteDescription] Fallback activated:", err?.message || err);
     logTechnicalDetails(functionName, endpoint, model, err?.status || 500, err);
     
     const fallbackResult = generateFallbackRewrite(input);
@@ -1200,7 +1266,7 @@ Gere o JSON com:
 
 app.post("/api/gemini/generateSimpleSEO", async (req, res) => {
   const { input } = req.body;
-  const model = "gemini-flash-lite-latest";
+  const model = "gemini-3-flash-preview";
   const functionName = "generateSimpleSEO";
   const endpoint = "/api/gemini/generateSimpleSEO";
 
@@ -1298,7 +1364,7 @@ Gere os dados estritamente em formato JSON seguindo o schema da instrução do s
 
 app.post("/api/gemini/generateSEOTitle", async (req, res) => {
   const { input } = req.body;
-  const model = "gemini-flash-lite-latest";
+  const model = "gemini-3-flash-preview";
   const functionName = "generateSEOTitle";
   const endpoint = "/api/gemini/generateSEOTitle";
 

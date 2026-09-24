@@ -475,8 +475,8 @@ export default function App() {
         </ScrollArea>
       </div>
 
-      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-4 md:py-6 flex-1">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
+      <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-3 md:py-4 flex-1">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           {/* Hide the old TabsList since we moved it to the header */}
           <div className="hidden">
             <TabsList>
