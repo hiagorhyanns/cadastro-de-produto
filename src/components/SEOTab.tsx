@@ -165,7 +165,7 @@ export function SEOTab({
         {seoLoading ? (
           <div className="space-y-4">
             <Card className="border-0 shadow-none bg-white overflow-hidden">
-              <div className="p-6 flex flex-col items-center justify-center gap-3 text-center">
+              <div className="p-4 sm:p-5 flex flex-col items-center justify-center gap-3 text-center">
                 <div className="relative">
                   <motion.div 
                     animate={{ rotate: 360 }}
@@ -206,9 +206,9 @@ export function SEOTab({
                     <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-blue-600">Google & Mercado Livre</span>
                   </div>
                 </CardHeader>
-                <CardContent className="p-6">
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
-                    <h3 className="text-xl font-black text-slate-900 leading-snug tracking-tight flex-1">
+                <CardContent className="p-3.5 sm:p-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+                    <h3 className="text-lg sm:text-xl font-black text-slate-900 leading-snug tracking-tight flex-1">
                       {seoResult.googleMeliTitle}
                     </h3>
                     <div className="shrink-0 flex items-center gap-1.5 self-start bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 shadow-sm">
@@ -220,7 +220,7 @@ export function SEOTab({
                   </div>
                   <Button 
                     onClick={() => handleCopy(seoResult.googleMeliTitle)}
-                    className="w-full h-11 bg-white hover:bg-slate-50 text-blue-600 border-2 border-blue-600 font-black uppercase tracking-widest text-[10px] rounded-[15px]"
+                    className="w-full h-10 bg-white hover:bg-slate-50 text-blue-600 border-2 border-blue-600 font-black uppercase tracking-widest text-[10px] rounded-[15px]"
                     style={{ borderRadius: "15px" }}
                   >
                     <Copy className="w-3.5 h-3.5 mr-2" />
@@ -236,9 +236,9 @@ export function SEOTab({
                     <span className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-slate-500">Site Acimaq</span>
                   </div>
                 </CardHeader>
-                <CardContent className="p-6">
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
-                    <h3 className="text-lg font-black text-slate-700 leading-snug tracking-tight flex-1">
+                <CardContent className="p-3.5 sm:p-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+                    <h3 className="text-base sm:text-lg font-black text-slate-700 leading-snug tracking-tight flex-1">
                       {seoResult.acimaqTitle}
                     </h3>
                     <div className="shrink-0 flex items-center gap-1.5 self-start bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 shadow-sm">
@@ -249,7 +249,7 @@ export function SEOTab({
                   <Button 
                     variant="outline"
                     onClick={() => handleCopy(seoResult.acimaqTitle)}
-                    className="w-full h-11 border-slate-200 hover:border-blue-400 hover:text-blue-600 font-black uppercase tracking-widest text-[10px] rounded-[15px]"
+                    className="w-full h-10 border-slate-200 hover:border-blue-400 hover:text-blue-600 font-black uppercase tracking-widest text-[10px] rounded-[15px]"
                     style={{ borderRadius: "15px" }}
                   >
                     <Copy className="w-3.5 h-3.5 mr-2" />
@@ -313,7 +313,7 @@ export function SEOTab({
             </Card>
 
             {/* Strategy Box */}
-            <div className="p-6 bg-[#0F172A] rounded-2xl border border-white/5 relative overflow-hidden group">
+            <div className="p-4 sm:p-5 bg-[#0F172A] rounded-2xl border border-white/5 relative overflow-hidden group">
               <div className="absolute -right-4 -top-4 w-24 h-24 bg-blue-600/10 blur-3xl rounded-full" />
               <div className="relative z-10 space-y-4">
                 <div className="flex items-center gap-2">

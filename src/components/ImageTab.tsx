@@ -295,7 +295,7 @@ export const ImageTab = ({
 
       {!isGenerationMode && (
         <div className="flex justify-center mb-3">
-          <div className="flex flex-wrap items-center justify-center gap-1 max-w-fit bg-slate-100/60 p-1 rounded-xl border border-slate-200/60">
+          <div className="flex flex-wrap items-center justify-center gap-1 max-w-fit bg-transparent p-0">
             {[
               { id: "principal", label: "Principal", icon: ImageIcon },
               { id: "ambientada", label: "Ambientada", icon: Home },
@@ -319,8 +319,8 @@ export const ImageTab = ({
                   }}
                   className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 shadow-none ${
                     submenu === tab.id 
-                      ? "bg-white text-blue-700 shadow-sm" 
-                      : "text-slate-500 hover:text-slate-900"
+                      ? "bg-white text-blue-700 shadow-none border border-slate-200" 
+                      : "text-slate-500 hover:text-slate-900 hover:bg-slate-100/60"
                   }`}
                 >
                   <IconComponent className={`w-3.5 h-3.5 ${
@@ -348,7 +348,7 @@ export const ImageTab = ({
           {submenu === 'outros' ? (
             <PromptGeneratorTab />
           ) : !isGenerationMode ? (
-        <form onSubmit={onGenerate} className={`w-full mx-auto ${hasRightSide ? "max-w-4xl" : "max-w-lg"}`}>
+        <form onSubmit={onGenerate} className="w-full mx-auto max-w-5xl">
           <div className={hasRightSide ? "grid lg:grid-cols-12 gap-3.5 w-full items-start" : "w-full space-y-2.5"}>
             {/* Left Side: Upload & Action */}
             <div className={hasRightSide ? "lg:col-span-5 space-y-2.5" : "w-full space-y-2.5"}>

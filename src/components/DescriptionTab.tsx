@@ -391,10 +391,10 @@ export const DescriptionTab = ({
                 {/* Secondary Info before generating (Restricted Terms if found in input) */}
                 {safeFoundWords.length > 0 && (
                   <Card className="border border-slate-200 shadow-none overflow-hidden rounded-[15px]" style={{ borderRadius: "15px" }}>
-                    <CardHeader className="p-6 pb-3">
+                    <CardHeader className="p-3.5 pb-1">
                       <CardTitle className="text-xs font-black uppercase tracking-widest text-red-600">Termos Restritos Encontrados na Entrada</CardTitle>
                     </CardHeader>
-                    <CardContent className="p-6">
+                    <CardContent className="p-3.5 pt-1">
                       <ScrollArea className="h-[100px] pr-4">
                         <div className="flex flex-wrap gap-2">
                           {safeFoundWords.map((word, i) => (
@@ -443,21 +443,21 @@ export const DescriptionTab = ({
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className="space-y-4 pb-4 animate-in fade-in duration-300"
+                className="space-y-2.5 pb-2 animate-in fade-in duration-300"
               >
                 {/* 1. TEXTO PRINCIPAL (SAÍDA 1 - Completo) */}
                 <Card style={{ borderRadius: "15px" }} className="border border-slate-200 shadow-none rounded-[15px] bg-white overflow-hidden">
-                  <CardHeader className="p-4 sm:p-5 pb-3 bg-white">
-                    <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <CardHeader className="p-3.5 sm:px-4 sm:py-2.5 bg-white">
+                    <div className="flex items-center justify-between gap-3 flex-wrap">
                       <div>
-                        <CardTitle className="text-xl font-black tracking-tight">Descrição completa</CardTitle>
+                        <CardTitle className="text-lg sm:text-xl font-black tracking-tight">Descrição completa</CardTitle>
                       </div>
-                      <div className="flex items-center gap-3 flex-wrap">
+                      <div className="flex items-center gap-2.5 flex-wrap">
                         <Button 
                           onClick={handleResetCompleto}
                           variant="outline"
                           style={{ borderRadius: "15px" }}
-                          className="h-10 px-4 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-[15px] shadow-none border border-slate-200 flex items-center gap-2 transition-all active:scale-95 shrink-0 text-xs sm:text-sm"
+                          className="h-9 px-3.5 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-[15px] shadow-none border border-slate-200 flex items-center gap-1.5 transition-all active:scale-95 shrink-0 text-xs sm:text-sm"
                         >
                           <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
                           Gerar novamente
@@ -467,7 +467,7 @@ export const DescriptionTab = ({
                           <Button 
                             variant="outline" 
                             style={{ borderRadius: "15px" }}
-                            className="h-10 px-4 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-[15px] shadow-none border border-slate-200 flex items-center gap-2 transition-all active:scale-95 shrink-0 text-xs sm:text-sm" 
+                            className="h-9 px-3.5 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-[15px] shadow-none border border-slate-200 flex items-center gap-1.5 transition-all active:scale-95 shrink-0 text-xs sm:text-sm" 
                             onClick={() => {
                               navigator.clipboard.writeText(rewriteResult.formattedDesc || "");
                               setCopyAlert(true);
@@ -496,10 +496,10 @@ export const DescriptionTab = ({
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-4 sm:p-5 pt-0">
+                  <CardContent className="p-3.5 sm:px-4 sm:pb-3.5 pt-0">
                     <div 
                       style={{ borderRadius: "15px", fontFamily: "'Roboto', sans-serif" }} 
-                      className="text-gray-700 leading-relaxed text-sm whitespace-pre-wrap font-normal border-l-4 border-slate-300 pl-4 pr-4 bg-gray-50/50 py-4 rounded-[15px] border border-slate-200 overflow-x-auto min-h-[180px] shadow-none"
+                      className="text-gray-700 leading-relaxed text-sm whitespace-pre-wrap font-normal border-l-4 border-slate-300 pl-4 pr-4 bg-gray-50/50 py-3 rounded-[15px] border border-slate-200 overflow-x-auto min-h-[140px] shadow-none"
                     >
                       {rewriteResult.formattedDesc}
                     </div>
@@ -508,18 +508,18 @@ export const DescriptionTab = ({
 
                 {/* Secondary Info (Keywords and Restricted Terms) - Posicionado embaixo do texto descrição gerado */}
                 {((rewriteResult.seoKeywords && rewriteResult.seoKeywords.length > 0) || safeFoundWords.length > 0) && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                     {rewriteResult.seoKeywords && rewriteResult.seoKeywords.length > 0 && (
                       <Card style={{ borderRadius: "15px" }} className="border border-slate-200 shadow-none rounded-[15px] bg-white overflow-hidden">
-                        <CardHeader className="p-4 pb-1">
+                        <CardHeader className="p-3 pb-1">
                           <CardTitle className="text-xs font-black uppercase tracking-widest text-orange-600">Palavras-chave SEO</CardTitle>
                         </CardHeader>
-                        <CardContent className="p-4 pt-1">
-                          <div className="flex flex-wrap gap-2">
+                        <CardContent className="p-3 pt-1">
+                          <div className="flex flex-wrap gap-1.5">
                             {rewriteResult.seoKeywords.map((tag, i) => (
                               <span 
                                 key={i} 
-                                className="bg-transparent text-slate-700 border-0 text-[11px] px-2 py-1 font-bold uppercase tracking-wide"
+                                className="bg-transparent text-slate-700 border-0 text-[11px] px-2 py-0.5 font-bold uppercase tracking-wide"
                               >
                                 #{tag}
                               </span>
@@ -531,18 +531,18 @@ export const DescriptionTab = ({
 
                     {safeFoundWords.length > 0 && (
                       <Card style={{ borderRadius: "15px" }} className="border border-slate-200 shadow-none rounded-[15px] bg-white overflow-hidden">
-                        <CardHeader className="p-4 pb-1">
+                        <CardHeader className="p-3 pb-1">
                           <CardTitle className="text-xs font-black uppercase tracking-widest text-red-600">Termos Restritos Encontrados</CardTitle>
                         </CardHeader>
-                        <CardContent className="p-4 pt-1">
+                        <CardContent className="p-3 pt-1">
                           <ScrollArea className="h-[90px] pr-4">
-                            <div className="flex flex-wrap gap-2">
+                            <div className="flex flex-wrap gap-1.5">
                               {safeFoundWords.map((word, i) => (
                                 <Badge 
                                   key={i} 
                                   variant="destructive"
                                   style={{ borderRadius: "15px" }}
-                                  className="text-[10px] py-1.5 px-3 rounded-[15px] transition-all duration-300 font-bold uppercase tracking-wider bg-red-600 text-white border border-red-700 shadow-none hover:bg-red-700"
+                                  className="text-[10px] py-1 px-2.5 rounded-[15px] transition-all duration-300 font-bold uppercase tracking-wider bg-red-600 text-white border border-red-700 shadow-none hover:bg-red-700"
                                 >
                                   {word} ({safeWordCounts[word] || 1}x)
                                 </Badge>
@@ -557,12 +557,12 @@ export const DescriptionTab = ({
 
                 {/* Meta Descrição Google (Type Description) */}
                 <Card style={{ borderRadius: "15px" }} className="border border-slate-200 shadow-none rounded-[15px] bg-white overflow-hidden">
-                  <CardHeader className="p-4 sm:p-5 pb-2 bg-white">
+                  <CardHeader className="p-3 sm:px-4 sm:py-2.5 bg-white">
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
                         <CardDescription className="text-gray-400 font-medium text-xs">Meta descrição otimizada para Google Search</CardDescription>
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
                         <AnimatePresence>
                           {typeDescAlert && (
                             <motion.div
@@ -570,10 +570,10 @@ export const DescriptionTab = ({
                               animate={{ opacity: 1, x: 0 }}
                               exit={{ opacity: 0, x: 20 }}
                               style={{ borderRadius: "15px" }}
-                              className="flex items-center gap-2 bg-emerald-500 text-white px-4 py-2 rounded-[15px] shadow-none border border-slate-200"
+                              className="flex items-center gap-2 bg-emerald-500 text-white px-3 py-1.5 rounded-[15px] shadow-none border border-slate-200"
                             >
-                              <CheckCircle2 className="w-4 h-4" />
-                              <span className="text-xs font-bold uppercase tracking-wider">Copiado!</span>
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span className="text-[11px] font-bold uppercase tracking-wider">Copiado!</span>
                             </motion.div>
                           )}
                         </AnimatePresence>
@@ -581,7 +581,7 @@ export const DescriptionTab = ({
                           variant="outline" 
                           size="sm" 
                           style={{ borderRadius: "15px" }}
-                          className="h-9 px-4 rounded-[15px] border border-slate-200 hover:bg-gray-50 flex items-center gap-2 transition-all active:scale-95 shadow-none text-xs"
+                          className="h-8 px-3 rounded-[15px] border border-slate-200 hover:bg-gray-50 flex items-center gap-1.5 transition-all active:scale-95 shadow-none text-xs"
                           onClick={() => {
                             navigator.clipboard.writeText(rewriteResult.typeDescription || "");
                             setTypeDescAlert(true);
@@ -594,7 +594,7 @@ export const DescriptionTab = ({
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-4 sm:p-5 pt-0">
+                  <CardContent className="p-3 sm:px-4 sm:pb-3 pt-0">
                     <div className="text-gray-700 leading-relaxed text-sm font-medium font-sans">
                       {rewriteResult.typeDescription || "Meta descrição não disponível."}
                     </div>
@@ -604,16 +604,16 @@ export const DescriptionTab = ({
                 {/* Dicas de Conteúdo (Insights) */}
                 {Array.isArray(rewriteResult.tips) && rewriteResult.tips.length > 0 && (
                   <Card style={{ borderRadius: "15px" }} className="border border-slate-200 shadow-none rounded-[15px] bg-white overflow-hidden">
-                    <CardHeader className="p-4 sm:p-5 pb-2 bg-white">
+                    <CardHeader className="p-3 sm:px-4 sm:py-2.5 bg-white">
                       <div className="space-y-0.5">
                         <CardDescription className="text-slate-500 font-medium text-xs">O que falta na sua descrição para converter mais</CardDescription>
                       </div>
                     </CardHeader>
-                    <CardContent className="p-4 sm:p-5 pt-2">
-                      <div className="grid md:grid-cols-2 gap-3">
+                    <CardContent className="p-3 sm:px-4 sm:pb-3 pt-1">
+                      <div className="grid md:grid-cols-2 gap-2.5">
                         {rewriteResult.tips.map((tip, index) => (
-                          <div key={index} style={{ borderRadius: "15px" }} className="flex gap-3 p-3 bg-slate-50/70 rounded-[15px] transition-colors shadow-none">
-                            <div style={{ borderRadius: "15px" }} className="flex-shrink-0 w-6 h-6 rounded-[15px] bg-indigo-50 text-indigo-600 flex items-center justify-center text-[10px] font-black shadow-none">
+                          <div key={index} style={{ borderRadius: "15px" }} className="flex gap-2.5 p-2.5 bg-slate-50/70 rounded-[15px] transition-colors shadow-none">
+                            <div style={{ borderRadius: "15px" }} className="flex-shrink-0 w-5 h-5 rounded-[15px] bg-indigo-50 text-indigo-600 flex items-center justify-center text-[10px] font-black shadow-none">
                               {index + 1}
                             </div>
                             <p className="text-xs sm:text-sm font-medium text-slate-600 leading-snug">{tip}</p>
@@ -626,9 +626,9 @@ export const DescriptionTab = ({
 
                 {/* Copy Comercial Gerada */}
                 {rewriteResult.commercial && (
-                  <section style={{ borderRadius: "15px" }} className="space-y-4 bg-white rounded-[15px] p-4 sm:p-5 border border-slate-200 shadow-none">
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="space-y-3">
+                  <section style={{ borderRadius: "15px" }} className="space-y-3 bg-white rounded-[15px] p-3.5 sm:p-4 border border-slate-200 shadow-none">
+                    <div className="grid md:grid-cols-2 gap-3.5">
+                      <div className="space-y-2.5">
                         <div className="space-y-1">
                           <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-black">A Dor do Cliente</h4>
                           <p className="text-gray-700 leading-relaxed italic text-sm">"{rewriteResult.commercial.problem}"</p>
@@ -638,12 +638,12 @@ export const DescriptionTab = ({
                           <p className="text-gray-700 leading-relaxed text-sm">{rewriteResult.commercial.solution}</p>
                         </div>
                       </div>
-                      <div className="space-y-3">
+                      <div className="space-y-2.5">
                         <div className="space-y-1">
                           <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-black">Contexto de Uso</h4>
                           <p className="text-gray-700 leading-relaxed text-sm">{rewriteResult.commercial.context}</p>
                         </div>
-                        <div style={{ borderRadius: "15px" }} className="p-4 bg-slate-50 rounded-[15px] border border-slate-200 space-y-1 shadow-none">
+                        <div style={{ borderRadius: "15px" }} className="p-3 bg-slate-50 rounded-[15px] border border-slate-200 space-y-1 shadow-none">
                           <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-black">Impacto de Venda</h4>
                           <p className="text-slate-900 leading-relaxed text-sm font-bold">{rewriteResult.commercial.benefit}</p>
                         </div>
@@ -654,8 +654,8 @@ export const DescriptionTab = ({
 
                 {/* 2. CARDS DE RESUMO */}
                 {rewriteResult.summary && (
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="space-y-2.5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2.5">
                       {[
                         { title: "Problema", text: rewriteResult.summary.problem },
                         { title: "Solução", text: rewriteResult.summary.solution },
@@ -663,10 +663,10 @@ export const DescriptionTab = ({
                         { title: "Público/Local", text: rewriteResult.summary.target }
                       ].map((card, i) => (
                         <Card key={i} style={{ borderRadius: "15px" }} className="border border-slate-200 shadow-none rounded-[15px] bg-white">
-                          <CardHeader className="p-4 pb-1">
+                          <CardHeader className="p-3 pb-1">
                             <CardTitle className="text-xs font-bold tracking-tight text-gray-900">{card.title}</CardTitle>
                           </CardHeader>
-                          <CardContent className="p-4 pt-1">
+                          <CardContent className="p-3 pt-1">
                             <p className="text-xs text-gray-500 leading-relaxed font-medium">
                               {card.text}
                             </p>
@@ -679,12 +679,12 @@ export const DescriptionTab = ({
 
                 {/* Cross-Sell Section (Acimaq Focus) */}
                 {Array.isArray(rewriteResult.crossSell) && rewriteResult.crossSell.length > 0 && (
-                  <section style={{ borderRadius: "15px" }} className="bg-white rounded-[15px] p-4 sm:p-5 border border-slate-200 shadow-none space-y-4">
-                    <div className="grid md:grid-cols-2 gap-4">
+                  <section style={{ borderRadius: "15px" }} className="bg-white rounded-[15px] p-3.5 sm:p-4 border border-slate-200 shadow-none space-y-3">
+                    <div className="grid md:grid-cols-2 gap-3">
                       {rewriteResult.crossSell.map((item, i) => (
-                        <div key={i} style={{ borderRadius: "15px" }} className="bg-slate-50 border border-slate-200 rounded-[15px] p-4 flex flex-col justify-between hover:bg-slate-100/70 transition-all group duration-300 shadow-none">
-                          <div className="space-y-1.5">
-                            <h3 className="text-base font-bold tracking-tight text-slate-800">{item.name}</h3>
+                        <div key={i} style={{ borderRadius: "15px" }} className="bg-slate-50 border border-slate-200 rounded-[15px] p-3.5 flex flex-col justify-between hover:bg-slate-100/70 transition-all group duration-300 shadow-none">
+                          <div className="space-y-1">
+                            <h3 className="text-sm font-bold tracking-tight text-slate-800">{item.name}</h3>
                             <p className="text-slate-600 text-xs leading-relaxed">{item.description}</p>
                           </div>
                         </div>
@@ -800,21 +800,21 @@ export const DescriptionTab = ({
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className="space-y-4 pb-4 animate-in fade-in duration-300"
+                className="space-y-2.5 pb-2 animate-in fade-in duration-300"
               >
                 {/* TEXTO SEO RAPIDO CARDS */}
                 <Card style={{ borderRadius: "15px" }} className="border border-slate-200 shadow-none rounded-[15px] bg-white overflow-hidden">
-                  <CardHeader className="p-4 sm:p-5 pb-3 bg-white">
-                    <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <CardHeader className="p-3.5 sm:px-4 sm:py-2.5 bg-white">
+                    <div className="flex items-center justify-between gap-3 flex-wrap">
                       <div>
-                        <CardTitle className="text-xl font-black tracking-tight font-sans">Descrição simples</CardTitle>
+                        <CardTitle className="text-lg sm:text-xl font-black tracking-tight font-sans">Descrição simples</CardTitle>
                       </div>
-                      <div className="flex items-center gap-3 flex-wrap">
+                      <div className="flex items-center gap-2.5 flex-wrap">
                         <Button 
                           onClick={handleResetRapido}
                           variant="outline"
                           style={{ borderRadius: "15px" }}
-                          className="h-10 px-4 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-[15px] shadow-none border border-slate-200 flex items-center gap-2 transition-all active:scale-95 shrink-0 text-xs sm:text-sm"
+                          className="h-9 px-3.5 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-[15px] shadow-none border border-slate-200 flex items-center gap-1.5 transition-all active:scale-95 shrink-0 text-xs sm:text-sm"
                         >
                           <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
                           Gerar novamente
@@ -824,7 +824,7 @@ export const DescriptionTab = ({
                           <Button 
                             variant="outline" 
                             style={{ borderRadius: "15px" }}
-                            className="h-10 px-4 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-[15px] shadow-none border border-slate-200 flex items-center gap-2 transition-all active:scale-95 shrink-0 text-xs sm:text-sm" 
+                            className="h-9 px-3.5 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-[15px] shadow-none border border-slate-200 flex items-center gap-1.5 transition-all active:scale-95 shrink-0 text-xs sm:text-sm" 
                             onClick={() => {
                               navigator.clipboard.writeText(rapidResult.seoParagraph || "");
                               setRapidCopyAlert(true);
@@ -853,10 +853,10 @@ export const DescriptionTab = ({
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-4 sm:p-5 pt-0">
+                  <CardContent className="p-3.5 sm:px-4 sm:pb-3.5 pt-0">
                     <div 
                       style={{ borderRadius: "15px", fontFamily: "'Roboto', sans-serif" }} 
-                      className="text-gray-700 leading-relaxed text-sm font-normal border-l-4 border-indigo-200 pl-4 pr-4 bg-indigo-50/20 py-3 rounded-[15px] border border-slate-200 shadow-none"
+                      className="text-gray-700 leading-relaxed text-sm font-normal border-l-4 border-indigo-200 pl-4 pr-4 bg-indigo-50/20 py-2.5 rounded-[15px] border border-slate-200 shadow-none"
                     >
                       {rapidResult.seoParagraph}
                     </div>
