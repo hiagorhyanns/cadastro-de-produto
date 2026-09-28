@@ -167,123 +167,9 @@ export async function generateProductContent(data: ProductData): Promise<Generat
   }
 }
 
-function createClientFallbackRewrite(input: RewriteInput): RewriteResult {
-  const name = input?.productName || "Produto";
-  const model = input?.model ? `Modelo ${input.model}` : "";
-  const brand = input?.brand ? `Marca ${input.brand}` : "";
-  const volt = input?.voltage ? `Voltagem ${input.voltage}` : "";
-  const diffs = input?.differentials || "Alta durabilidade, eficiência operacional e excelente acabamento";
-
-  const alt = input?.altura ? `${input.altura} cm` : "-";
-  const larg = input?.largura ? `${input.largura} cm` : "-";
-  const prof = input?.profundidade ? `${input.profundidade} cm` : "-";
-  const peso = input?.peso ? `${input.peso} kg` : "-";
-
-  const safeForbidden = Array.isArray(input?.forbiddenWords) ? input.forbiddenWords : [];
-  const wordCounts: { [key: string]: number } = {};
-  const foundWords: string[] = [];
-  const normalizedText = (input?.originalText || "").toLowerCase();
-  safeForbidden.forEach((word: string) => {
-    try {
-      const regex = new RegExp(`\\b${word.toLowerCase().replace(/\//g, '\\/')}\\b`, 'gi');
-      const matches = normalizedText.match(regex);
-      if (matches) {
-        wordCounts[word] = matches.length;
-        foundWords.push(word);
-      }
-    } catch (e) {}
-  });
-
-  const formattedDesc = `${name} ${model} ${brand} ${volt} é desenvolvido para proporcionar máxima eficiência, resistência e precisão no uso diário. Com fabricação reforçada e especificações alinhadas às exigências operacionais, atende com segurança e estabilidade.
-
-Confirme se este é o ${name} certo para você
-Antes de comprar, verifique:
-A capacidade e dimensões atendem ao seu espaço de trabalho? (Verifique as medidas nas especificações técnicas)
-A voltagem e alimentação são compatíveis com sua instalação elétrica? (Confirme se ${volt || "sua rede elétrica"} é a indicada)
-O modelo atende ao volume de demanda da sua operação? (Ideal para demandas constantes e de alta produtividade)
-Necessita de itens ou acessórios complementares? (Consulte o que acompanha o equipamento)
-
-Se respondeu “sim” para todos os pontos acima, este ${name} atende à sua necessidade.
-
-Diferenciais técnicos que importam na prática:
-
-Estrutura Reforçada e Durabilidade:
-Construído com materiais de alta qualidade para suportar rotinas intensas de trabalho sem deformações.
-
-Eficiência e Rendimento:
-Projetado para otimizar o tempo de processo e entregar resultados padronizados e consistentes.
-
-Operação Segura e Ergonômica:
-Desenvolvido visando facilidade de manuseio e segurança operacional.
-
-${diffs ? `Diferencial Exclusivo:\n${diffs}` : "Acabamento Padronizado:\nFacilidade de higienização e manutenção preventiva."}
-
-Aplicações Indicadas:
-Uso comercial e profissional
-Ambientes de produção contínua
-Estabelecimentos que buscam padronização e rendimento
-Setores industriais e operacionais
-
-Especificações Técnicas:
-
-Nome: ${name}
-${model ? `Modelo: ${input.model}\n` : ""}${brand ? `Marca: ${input.brand}\n` : ""}${volt ? `Voltagem: ${input.voltage}\n` : ""}Altura: ${alt}
-Largura: ${larg}
-Profundidade: ${prof}
-Peso: ${peso}
-
-Dúvida técnica? Pergunte antes de comprar.
-
-Questões sobre especificações, compatibilidade ou uso do ${name} - nossa equipe responde com dados técnicos precisos. Use a caixa de perguntas logo abaixo do anúncio ou entre em contato.`;
-
-  const seoParagraph = `O ${name} ${model} ${brand} combina durabilidade, alto rendimento e tecnologia para atender rotinas exigentes de trabalho. Projetado com materiais resistentes e foco em segurança, garante produtividade contínua e resultados superiores para o seu negócio.`;
-
-  const typeDescription = `Compre ${name} ${model} ${brand} com o melhor custo-benefício. Alta eficiência, resistência técnica e entrega rápida. Confira!`;
-
-  return sanitizeRewriteResult({
-    formattedDesc,
-    seoParagraph,
-    typeDescription,
-    summary: {
-      problem: "Necessidade de equipamento robusto com desempenho confiável.",
-      solution: `${name} ${model} oferece tecnologia adequada e resistência.`,
-      benefits: "Alta produtividade, durabilidade prolongada e operação segura.",
-      target: "Profissionais e empresas que buscam rendimento garantido."
-    },
-    commercial: {
-      problem: "Perda de produtividade com equipamentos frágeis ou desregulados.",
-      solution: "Estrutura reforçada projetada para funcionamento contínuo.",
-      context: "Rotina operacional diária de comércio ou produção.",
-      benefit: "Retorno rápido sobre o investimento com menor índice de manutenção."
-    },
-    crossSell: [
-      { name: "Acessórios de Manutenção", description: "Kits de conservação e limpeza para maior vida útil." },
-      { name: "Peças de Reposição Genuínas", description: "Componentes originais para reposição sem perda de rendimento." }
-    ],
-    tips: [
-      "Informe detalhadamente as dimensões do local onde o produto será instalado.",
-      "Confira a compatibilidade de voltagem antes da ligação.",
-      "Mantenha a rotina de higienização preventiva conforme o manual.",
-      "Utilize insumos e peças recomendados pelo fabricante."
-    ],
-    seoKeywords: [
-      name.toLowerCase(),
-      `${name.toLowerCase()} profissional`,
-      `${name.toLowerCase()} ${input?.brand?.toLowerCase() || ""}`.trim(),
-      `${name.toLowerCase()} preço`,
-      `${name.toLowerCase()} comprar`,
-      "equipamento profissional",
-      "melhor custo benefício",
-      "alta durabilidade"
-    ],
-    foundWords,
-    wordCounts
-  }, input);
-}
-
 export function sanitizeRewriteResult(result: any, input?: any): RewriteResult {
   if (!result || typeof result !== "object") {
-    return createClientFallbackRewrite(input || {});
+    throw new Error("A resposta recebida da geração é inválida ou não pôde ser lida.");
   }
   return {
     formattedDesc: typeof result.formattedDesc === "string" && result.formattedDesc.trim() 
@@ -324,27 +210,40 @@ export function sanitizeRewriteResult(result: any, input?: any): RewriteResult {
 }
 
 export async function rewriteDescription(input: RewriteInput): Promise<RewriteResult> {
-  try {
-    const res = await fetch("/api/gemini/rewriteDescription", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ input })
-    });
-
-    if (!res.ok) {
-      console.warn("API rewriteDescription returned non-ok status, using fallback:", res.status);
-      return sanitizeRewriteResult(createClientFallbackRewrite(input), input);
+  const apiKeyHeader: Record<string, string> = {};
+  if (typeof window !== "undefined") {
+    const key = (import.meta as any).env?.VITE_GEMINI_API_KEY || (import.meta as any).env?.GEMINI_API_KEY;
+    if (key) {
+      apiKeyHeader["x-gemini-api-key"] = key;
     }
-
-    const data = await safeParseJSONResponse(res);
-    if (data && data.formattedDesc) {
-      return sanitizeRewriteResult(data, input);
-    }
-    return sanitizeRewriteResult(createClientFallbackRewrite(input), input);
-  } catch (error: any) {
-    console.warn("Erro ao reescrever descrição no backend, utilizando fallback seguro:", error);
-    return sanitizeRewriteResult(createClientFallbackRewrite(input), input);
   }
+
+  const res = await fetch("/api/gemini/rewriteDescription", {
+    method: "POST",
+    headers: { 
+      "Content-Type": "application/json",
+      ...apiKeyHeader
+    },
+    body: JSON.stringify({ input })
+  });
+
+  if (!res.ok) {
+    let message = `Erro no servidor (${res.status})`;
+    try {
+      const errData = await res.json();
+      if (errData?.message) {
+        message = errData.message;
+      }
+    } catch (_) {}
+    throw new Error(message);
+  }
+
+  const data = await safeParseJSONResponse(res);
+  if (!data || !data.formattedDesc || typeof data.formattedDesc !== "string" || data.formattedDesc.trim().length < 40) {
+    throw new Error("A descrição completa gerada pela IA veio vazia ou incompleta. Suas informações foram mantidas para tentar novamente.");
+  }
+
+  return sanitizeRewriteResult(data, input);
 }
 
 export async function generateSEOTitle(input: SEOInput): Promise<SEOResult> {

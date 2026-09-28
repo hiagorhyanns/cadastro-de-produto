@@ -19,17 +19,46 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 // Server-side initialization of Gemini client
-const apiKey = process.env.GEMINI_API_KEY || "";
-console.log(`[Server] Gemini API Key configured: ${apiKey ? "YES (length: " + apiKey.length + ")" : "NO"}`);
+export function getGeminiApiKey(req?: express.Request): string {
+  const headerKey = req ? (req.headers["x-gemini-api-key"] as string) : "";
+  return (
+    headerKey ||
+    process.env.GEMINI_API_KEY ||
+    process.env.GOOGLE_GENAI_API_KEY ||
+    process.env.GOOGLE_API_KEY ||
+    process.env.VITE_GEMINI_API_KEY ||
+    ""
+  ).trim();
+}
 
-const ai = new GoogleGenAI({
-  apiKey: apiKey,
-  httpOptions: {
-    headers: {
-      'User-Agent': 'aistudio-build',
+export function getAiClient(req?: express.Request): GoogleGenAI {
+  const key = getGeminiApiKey(req);
+  return new GoogleGenAI({
+    apiKey: key,
+    httpOptions: {
+      headers: {
+        'User-Agent': 'aistudio-build',
+      }
+    }
+  });
+}
+
+// URL normalization middleware for Vercel Serverless environment
+app.use((req, res, next) => {
+  if (req.url === "/" || req.url === "/api" || req.url === "" || req.url.startsWith("/?path=")) {
+    if (req.query && req.query.path) {
+      const p = Array.isArray(req.query.path) ? req.query.path.join("/") : req.query.path;
+      req.url = `/api/${p}`;
+    } else if (req.headers["x-matched-path"] && String(req.headers["x-matched-path"]).startsWith("/api/")) {
+      req.url = String(req.headers["x-matched-path"]);
     }
   }
+  next();
 });
+
+const ai = getAiClient();
+const apiKey = getGeminiApiKey();
+console.log(`[Server] Gemini API Key configured: ${apiKey ? "YES (length: " + apiKey.length + ")" : "NO"}`);
 
 // Helper to safely extract base64 data regardless of data URI prefix
 function getBase64Data(imgStr: string): string {
@@ -69,18 +98,15 @@ async function backendCallGeminiWithRetry(params: {
   model: string;
   contents: any;
   config?: any;
-}, functionName: string, endpoint: string): Promise<any> {
+}, functionName: string, endpoint: string, req?: express.Request): Promise<any> {
   const maxRetriesPerModel = 1;
   const candidateModels = [
     params.model,
-    "gemini-3-flash-preview",
-    "gemini-3.5-flash",
-    "gemini-3.6-flash",
-    "gemini-flash-lite-latest",
-    "gemini-3.1-flash-lite",
-    "gemini-3.5-flash-lite",
     "gemini-3.8-flash",
-    "gemini-flash-latest"
+    "gemini-3.1-flash-lite",
+    "gemini-flash-latest",
+    "gemini-3.6-flash",
+    "gemini-3-flash-preview"
   ].filter(Boolean);
   const uniqueModels = Array.from(new Set(candidateModels));
   
@@ -90,7 +116,8 @@ async function backendCallGeminiWithRetry(params: {
     for (let attempt = 0; attempt <= maxRetriesPerModel; attempt++) {
       try {
         console.log(`[Server Gemini] Request func=${functionName} model=${currentModel} attempt=${attempt}`);
-        const response = await ai.models.generateContent({
+        const client = getAiClient(req);
+        const response = await client.models.generateContent({
           ...params,
           model: currentModel
         });
@@ -292,9 +319,26 @@ async function backendCallGeminiImageWithRetry(
   throw lastError || new Error("Falha ao gerar imagem com os modelos oficiais do Gemini.");
 }
 
-app.get("/api/gemini/image-health", (_req, res) => {
+app.get(["/api/version", "/version"], (_req, res) => {
+  const hasKey = Boolean(getGeminiApiKey());
   res.json({
-    configured: Boolean(apiKey),
+    status: "ok",
+    generatorVersion: "2.2.0-compact-prod",
+    descriptionFormat: "compact-v2",
+    environment: process.env.VERCEL ? "vercel-serverless" : "express-dev",
+    hasApiKey: hasKey,
+    nodeEnv: process.env.NODE_ENV || "development",
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.get(["/api/health", "/health"], (_req, res) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+app.get(["/api/gemini/image-health", "/gemini/image-health"], (_req, res) => {
+  res.json({
+    configured: Boolean(getGeminiApiKey()),
     provider: "Google Gemini API",
     models: ["gemini-3.1-flash-lite-image", "gemini-3.1-flash-image"],
     referenceImageRequired: true,
@@ -303,7 +347,7 @@ app.get("/api/gemini/image-health", (_req, res) => {
 });
 
 // API Endpoints
-app.post("/api/gemini/validateProductFidelity", async (req, res) => {
+app.post(["/api/gemini/validateProductFidelity", "/gemini/validateProductFidelity"], async (req, res) => {
   const { data } = req.body;
   const model = "gemini-3-flash-preview";
   const functionName = "validateProductFidelity";
@@ -411,7 +455,7 @@ async function identifyProductFromImage(data: { image: string; mimeType: string;
   return "";
 }
 
-app.post("/api/gemini/generateProductContent", async (req, res) => {
+app.post(["/api/gemini/generateProductContent", "/gemini/generateProductContent"], async (req, res) => {
   const functionName = "generateProductContent";
   const endpoint = "/api/gemini/generateProductContent";
 
@@ -959,213 +1003,243 @@ Diretrizes e Regras de Design e Composição Visual:
   }
 });
 
-function generateFallbackRewrite(input: any): any {
-  const name = input?.productName || "Produto";
-  const model = input?.model ? `Modelo ${input.model}` : "";
-  const brand = input?.brand ? `Marca ${input.brand}` : "";
-  const volt = input?.voltage ? `Voltagem ${input.voltage}` : "";
-  const diffs = input?.differentials || "Alta durabilidade, eficiência operacional e excelente acabamento";
+export function normalizeFormattedDescription(raw: string, productName?: string): string {
+  if (!raw || typeof raw !== "string") return "";
 
-  const alt = input?.altura ? `${input.altura} cm` : "-";
-  const larg = input?.largura ? `${input.largura} cm` : "-";
-  const prof = input?.profundidade ? `${input.profundidade} cm` : "-";
-  const peso = input?.peso ? `${input.peso} kg` : "-";
+  let text = raw.trim();
 
-  const formattedDesc = `${name} ${model} ${brand} ${volt} é desenvolvido para proporcionar máxima eficiência, resistência e precisão no uso diário. Com fabricação reforçada e especificações alinhadas às exigências operacionais, atende com segurança e estabilidade.
+  // 1. Remove Markdown headers (#, ##, ###)
+  text = text.replace(/^#{1,6}\s+/gm, "");
 
-Confirme se este é o ${name} certo para você
-Antes de comprar, verifique:
-A capacidade e dimensões atendem ao seu espaço de trabalho? (Verifique as medidas nas especificações técnicas)
-A voltagem e alimentação são compatíveis com sua instalação elétrica? (Confirme se ${volt || "sua rede elétrica"} é a indicada)
-O modelo atende ao volume de demanda da sua operação? (Ideal para demandas constantes e de alta produtividade)
-Necessita de itens ou acessórios complementares? (Consulte o que acompanha o equipamento)
+  // 2. Remove Markdown bold/italic (**texto**, *texto*, __texto__)
+  text = text.replace(/\*\*(.*?)\*\*/g, "$1");
+  text = text.replace(/__(.*?)__/g, "$1");
 
-Se respondeu “sim” para todos os pontos acima, este ${name} atende à sua necessidade.
+  // 3. Remove leading bullet points (-, *, •) at start of lines
+  text = text.replace(/^[ \t]*[*\-•][ \t]+/gm, "");
 
-Diferenciais técnicos que importam na prática:
+  // 4. Merge old double-headers into the single new standard title:
+  text = text.replace(/Antes de comprar,\s*verifique:?\s*/gi, "");
+  text = text.replace(/(?:Antes de comprar,\s*)?Confirme se este é o ([^:\n]+) certo para você:?\s*/gi, "Antes de comprar, confirme se este é o $1 certo para você:\n");
+  text = text.replace(/(?:Antes de comprar,\s*)?Confirme se esta é a ([^:\n]+) certa para você:?\s*/gi, "Antes de comprar, confirme se esta é a $1 certa para você:\n");
+  text = text.replace(/(Antes de comprar,\s*)+confirme se/gi, "Antes de comprar, confirme se");
 
-Estrutura Reforçada e Durabilidade:
-Construído com materiais de alta qualidade para suportar rotinas intensas de trabalho sem deformações.
+  // 5. In Section B (Questions):
+  // Remove parentheses around question explanations:
+  // e.g., "Sua instalação é para Gás GLP de baixa pressão? (Configuração padrão de fábrica)"
+  // -> "Sua instalação é para Gás GLP de baixa pressão? Configuração padrão de fábrica"
+  text = text.replace(/\?\s*\(([^)\n]+)\)/g, "? $1");
+  text = text.replace(/\?\s*[-–—:]\s+/g, "? ");
 
-Eficiência e Rendimento:
-Projetado para otimizar o tempo de processo e entregar resultados padronizados e consistentes.
+  // Ensure Section B conclusion has a blank line before and after
+  text = text.replace(/\n*(Se respondeu [“"']sim[”"'][^\n]+)\n*/gi, "\n\n$1\n\n");
 
-Operação Segura e Ergonômica:
-Desenvolvido visando facilidade de manuseio e segurança operacional.
+  // 6. In Section C (Diferenciais):
+  // If AI split "Nome do diferencial:\nExplicação", join them to "Nome do diferencial: Explicação"
+  text = text.replace(/\n*(Diferenciais técnicos que importam na prática:)\n*/gi, "\n\n$1\n");
+  text = text.replace(/^([A-Za-zÀ-ÖØ-öø-ÿ0-9\s/–—-]+):\n([A-Za-zÀ-ÖØ-öø-ÿ0-9])/gm, (match, p1, p2) => {
+    const lower = p1.trim().toLowerCase();
+    if (
+      lower.startsWith("antes de comprar") ||
+      lower.startsWith("diferenciais técnicos") ||
+      lower.startsWith("especificações técnicas") ||
+      lower.startsWith("aplicações indicadas") ||
+      lower.startsWith("não indicado") ||
+      lower.startsWith("não acompanha") ||
+      lower.startsWith("dúvida técnica")
+    ) {
+      return match;
+    }
+    return `${p1.trim()}: ${p2}`;
+  });
 
-${diffs ? `Diferencial Exclusivo:\n${diffs}` : "Acabamento Padronizado:\nFacilidade de higienização e manutenção preventiva."}
+  // Section D title spacing
+  text = text.replace(/\n*(Especificações Técnicas:)\n*/gi, "\n\n$1\n");
 
-Aplicações Indicadas:
-Uso comercial e profissional
-Ambientes de produção contínua
-Estabelecimentos que buscam padronização e rendimento
-Setores industriais e operacionais
+  // 7. Encerramento:
+  // Ensure "Dúvida técnica? Pergunte antes de comprar" is unified with the explanation paragraph:
+  text = text.replace(/\n*(Dúvida técnica\?\s*Pergunte antes de comprar)/gi, "\n\n$1");
+  text = text.replace(/Dúvida técnica\?\s*Pergunte antes de comprar\.?\s*\n+\s*([^\n]+)/i, "Dúvida técnica? Pergunte antes de comprar, $1");
 
-Especificações Técnicas:
+  // 8. Replace placeholders if product name was provided or detected
+  if (productName && productName.trim()) {
+    const cleanName = productName.trim();
+    text = text.replace(/\[Nome do Produto\]/gi, cleanName)
+               .replace(/\{Nome do Produto\}/gi, cleanName)
+               .replace(/\[NOME DO PRODUTO\]/gi, cleanName)
+               .replace(/\{NOME DO PRODUTO\}/gi, cleanName)
+               .replace(/NOME DO PRODUTO/g, cleanName);
+  }
 
-Nome: ${name}
-${model ? `Modelo: ${input.model}\n` : ""}${brand ? `Marca: ${input.brand}\n` : ""}${volt ? `Voltagem: ${input.voltage}\n` : ""}Altura: ${alt}
-Largura: ${larg}
-Profundidade: ${prof}
-Peso: ${peso}
+  // 9. Standardize line spacing:
+  text = text.replace(/\r\n/g, "\n");
+  text = text.replace(/\n{3,}/g, "\n\n");
 
-Dúvida técnica? Pergunte antes de comprar.
-
-Questões sobre especificações, compatibilidade ou uso do ${name} - nossa equipe responde com dados técnicos precisos. Use a caixa de perguntas logo abaixo do anúncio ou entre em contato.`;
-
-  const seoParagraph = `O ${name} ${model} ${brand} combina durabilidade, alto rendimento e tecnologia para atender rotinas exigentes de trabalho. Projetado com materiais resistentes e foco em segurança, garante produtividade contínua e resultados superiores para o seu negócio.`;
-
-  const typeDescription = `Compre ${name} ${model} ${brand} com o melhor custo-benefício. Alta eficiência, resistência técnica e entrega rápida. Confira!`;
-
-  return {
-    formattedDesc,
-    seoParagraph,
-    typeDescription,
-    summary: {
-      problem: "Necessidade de equipamento robusto com desempenho confiável.",
-      solution: `${name} ${model} oferece tecnologia adequada e resistência.`,
-      benefits: "Alta produtividade, durabilidade prolongada e operação segura.",
-      target: "Profissionais e empresas que buscam rendimento garantido."
-    },
-    commercial: {
-      problem: "Perda de produtividade com equipamentos frágeis ou desregulados.",
-      solution: "Estrutura reforçada projetada para funcionamento contínuo.",
-      context: "Rotina operacional diária de comércio ou produção.",
-      benefit: "Retorno rápido sobre o investimento com menor índice de manutenção."
-    },
-    crossSell: [
-      { name: "Acessórios de Manutenção", description: "Kits de conservação e limpeza para maior vida útil." },
-      { name: "Peças de Reposição Genuínas", description: "Componentes originais para reposição sem perda de rendimento." }
-    ],
-    tips: [
-      "Informe detalhadamente as dimensões do local onde o produto será instalado.",
-      "Confira a compatibilidade de voltagem antes da ligação.",
-      "Mantenha a rotina de higienização preventiva conforme o manual.",
-      "Utilize insumos e peças recomendados pelo fabricante."
-    ],
-    seoKeywords: [
-      name.toLowerCase(),
-      `${name.toLowerCase()} profissional`,
-      `${name.toLowerCase()} ${input?.brand?.toLowerCase() || ""}`.trim(),
-      `${name.toLowerCase()} preço`,
-      `${name.toLowerCase()} comprar`,
-      "equipamento profissional",
-      "melhor custo benefício",
-      "alta durabilidade"
-    ]
-  };
+  return text.trim();
 }
 
-app.post("/api/gemini/rewriteDescription", async (req, res) => {
-  const { input } = req.body || {};
-  const model = "gemini-3-flash-preview";
+export function validateDescriptionCompleteness(text: string): { isValid: boolean; reason?: string } {
+  if (!text || typeof text !== "string" || text.trim().length < 80) {
+    return { isValid: false, reason: "A descrição gerada veio vazia ou com conteúdo insuficiente." };
+  }
+
+  const placeholderRegex = /\[nome do produto\]|\[característica\]|\[valor\]|\{benefício\}|xx cm|insira aqui|descreva o produto|\{nome do diferencial\}|\{explicação/i;
+  if (placeholderRegex.test(text)) {
+    return { isValid: false, reason: "A resposta gerada continha placeholders incompletos de template." };
+  }
+
+  const lower = text.toLowerCase();
+  const hasVerif = lower.includes("antes de comprar, confirme") || lower.includes("se respondeu “sim”") || lower.includes("se respondeu \"sim\"");
+  const hasDiffs = lower.includes("diferenciais técnicos");
+  const hasSpecs = lower.includes("especificações técnicas");
+  const hasDuvida = lower.includes("dúvida técnica");
+
+  if (!hasVerif || !hasDiffs || !hasSpecs || !hasDuvida) {
+    return { isValid: false, reason: "A descrição gerada não continha todas as seções obrigatórias estruturadas." };
+  }
+
+  return { isValid: true };
+}
+
+app.post(["/api/gemini/rewriteDescription", "/gemini/rewriteDescription"], async (req, res) => {
+  const body = req.body || {};
+  const input = body.input || body;
+  const model = "gemini-3.8-flash";
   const functionName = "rewriteDescription";
   const endpoint = "/api/gemini/rewriteDescription";
 
+  const apiKeyConfigured = getGeminiApiKey(req);
+  if (!apiKeyConfigured) {
+    return res.status(500).json({
+      error: "missing_api_key",
+      message: "Chave de API do Gemini não configurada no servidor. Configure a variável de ambiente GEMINI_API_KEY no painel da Vercel (Project Settings > Environment Variables) e faça um novo deploy."
+    });
+  }
+
+  const rawOriginalText = String(input?.originalText || input?.text || input?.description || body?.originalText || body?.text || "").trim();
+  const inputProductName = String(input?.productName || input?.name || body?.productName || body?.name || "").trim();
+
+  if (!rawOriginalText && !inputProductName) {
+    return res.status(400).json({
+      error: "insufficient_input",
+      message: "Por favor, forneça as informações ou o texto do produto no campo de entrada para gerar a descrição completa."
+    });
+  }
+
   const safeForbidden = Array.isArray(input?.forbiddenWords) ? input.forbiddenWords : [];
 
-  const systemInstruction = `Você é um especialista em copywriting para e-commerce B2B e industrial brasileiro.
-Sua tarefa é gerar descrições de produto em formato comercial, técnico e organizado, seguindo um padrão único e rigoroso.
+  const systemInstruction = `Você é um redator técnico e especialista sênior em copywriting para e-commerce e marketplaces brasileiros (Mercado Livre, B2B, plataformas especializadas).
+Sua tarefa é gerar descrições de produtos completas, estruturadas, profissionais e prontas para publicação imediata, em português do Brasil.
 
-A descrição final deve seguir exatamente este padrão de organização, sem adicionar seções extras, sem linhas separadoras, sem markdown pesado, sem tabelas e sem caixa alta exagerada.
+OBJETIVO PRINCIPAL DE APRESENTAÇÃO E CONTEÚDO:
+Compactar a apresentação sem resumir nem remover nenhuma informação relevante.
+A saída principal (campo formattedDesc) deve ser TEXTO SIMPLES puro, sem títulos em Markdown (#, ##), sem negrito com asteriscos (**), sem emojis, sem marcadores com bullets (*, -, •), sem blocos de código e sem tags HTML.
+Use EXATAMENTE UMA linha em branco entre os blocos principais (A, B, C, D, E). Dentro de cada bloco, use quebras simples de linha, SEM linhas em branco adicionais.
+Entregue SEMPRE o texto final 100% preenchido com os dados reais do produto informado, NUNCA um roteiro com colchetes, placeholders como [nome do produto], {benefício}, XX cm, "insira aqui" ou instruções ao redator.
+Não invente características, capacidades, materiais, acessórios, certificações, compatibilidades ou medidas que não foram informadas. Omita campos sem dados.
+Adapte 100% o texto à categoria e dados do produto real informado (não use fogão como padrão para outros equipamentos!).
 
-MODELO OBRIGATÓRIO DE RESPOSTA (SAÍDA 1):
+ESTRUTURA OBRIGATÓRIA DA DESCRIÇÃO COMPLETA (formattedDesc):
 
-[Resumo principal do produto]
-(Um parágrafo inicial direto com as principais informações: nome, modelo, uso principal, material, capacidade, medidas ou diferencial mais importante. SEM título, SEM colchetes.)
+A) INTRODUÇÃO:
+- Comece diretamente com um único parágrafo corrido apresentando o produto, sua finalidade e as principais características e vantagens sustentadas pelos dados de entrada.
+- NÃO coloque nenhum título antes desse parágrafo.
+- Após a introdução, deixe exatamente uma linha em branco.
 
-Confirme se este é o [Nome do Produto] certo para você
-Antes de comprar, verifique:
-[Pergunta 1 específica do produto]? ([Explicação curta entre parênteses])
-[Pergunta 2 específica do produto]? ([Explicação curta entre parênteses])
-[Pergunta 3 específica do produto]? ([Explicação curta entre parênteses])
-[Pergunta 4 específica do produto]? ([Explicação curta entre parênteses])
-(Uma pergunta por linha. SEM bullet points, SEM hifens, SEM numeração.)
+B) VERIFICAÇÃO ANTES DA COMPRA:
+- Título obrigatório:
+Antes de comprar, confirme se este é o NOME DO PRODUTO certo para você:
+(Substitua NOME DO PRODUTO pelo nome real completo do produto identificado a partir dos dados de entrada. Se o substantivo for feminino, adapte a concordância: "esta é a ... certa para você:").
+- Na linha imediatamente seguinte, coloque cada pergunta em uma linha, com a sua explicação na MESMA linha, logo após o ponto de interrogação.
+- NÃO use marcadores, numeração, hifens ou linhas em branco entre as perguntas.
+- NÃO envolva a explicação da pergunta entre parênteses. (Exemplo: "Sua instalação é para Gás GLP de baixa pressão? Configuração padrão de fábrica").
+- Crie preferencialmente 4 perguntas relevantes baseadas estritamente nas informações disponíveis (voltagem/alimentação, espaço/dimensões, capacidade/volume de trabalho, utilidade/acessórios). Não invente dados para completar a quantidade.
+- Após as perguntas, deixe exatamente uma linha em branco e inclua a conclusão no padrão:
+Se respondeu “sim” para todos os pontos acima, este NOME DO PRODUTO atende à sua necessidade.
+(Preencha com o nome real e adapte o artigo se feminino).
+- Deixe exatamente uma linha em branco.
 
-Se respondeu “sim” para todos os pontos acima, este [Nome do Produto] atende à sua necessidade.
-
+C) DIFERENCIAIS E APLICAÇÕES:
+- Título obrigatório:
 Diferenciais técnicos que importam na prática:
+- Na linha imediatamente seguinte, apresente os diferenciais.
+- Cada diferencial DEVE ocupar uma ÚNICA linha lógica, no padrão exato:
+Nome do diferencial: Explicação completa do diferencial e de sua utilidade prática.
+- NÃO quebre linha entre o nome do diferencial e sua explicação. NÃO deixe linhas em branco entre os diferenciais.
+- Após os diferenciais, na linha imediatamente seguinte, inclua as aplicações em uma única linha, com itens separados por ponto e vírgula e encerramento adequado:
+Aplicações Indicadas: Item 1; Item 2; Item 3; Item 4.
+- Na sequência imediata (sem linhas em branco intermediárias), apresente SOMENTE quando houver informação confirmada:
+NÃO indicado para: Restrições efetivamente informadas.
+NÃO acompanha: Itens efetivamente informados como não inclusos.
+(Atenção: estas duas linhas são condicionais. Se não houver informação informada sobre restrições ou itens não inclusos, omita-as completamente. Não invente restrições ou ausências).
+- Deixe exatamente uma linha em branco.
 
-[Nome do Diferencial 1]:
-[Explicação prática do porquê isso importa, em uma nova linha.]
-
-[Nome do Diferencial 2]:
-[Explicação prática do porquê isso importa, em uma nova linha.]
-
-[Nome do Diferencial 3]:
-[Explicação prática do porquê isso importa, em uma nova linha.]
-
-[Nome do Diferencial 4]:
-[Explicação prática do porquê isso importa, em uma nova linha.]
-(Use de 3 a 6 diferenciais baseados estritamente nos dados fornecidos.)
-
-Aplicações Indicadas:
-[Aplicação 1]
-[Aplicação 2]
-[Aplicação 3]
-[Aplicação 4]
-[Aplicação 5]
-(Lista simples, uma por linha. SEM hifens, SEM bullets, SEM vírgulas em sequência.)
-
-NÃO indicado para: [situações, medidas ou usos incompatíveis]
-NÃO acompanha: [itens não inclusos, somente se a informação existir ou fizer sentido]
-
+D) ESPECIFICAÇÕES TÉCNICAS:
+- Título obrigatório:
 Especificações Técnicas:
+- Na linha imediatamente seguinte, liste cada especificação em uma linha no padrão:
+Nome do campo: Valor
+- NÃO deixe linhas em branco entre os campos.
+- Preserve todas as especificações relevantes disponíveis: modelo, capacidade, material, potência, tensão/voltagem, consumo, dimensões (Altura, Largura, Profundidade), peso e outras que realmente se apliquem ao produto.
+- Preserve números, unidades e casas decimais fornecidos (ex: 142,7 cm não deve virar 142 cm). NÃO remova parênteses úteis das especificações técnicas.
+- Deixe exatamente uma linha em branco.
 
-[Característica]: [Valor]
-[Característica]: [Valor]
-Altura: [Valor]
-Largura: [Valor]
-Profundidade: [Valor]
-Peso: [Valor]
-(Formato limpo. SEM pontilhado, SEM tabela, SEM separadores.)
+E) ENCERRAMENTO:
+- Um único parágrafo corrido unindo a chamada de dúvida técnica com a orientação de atendimento, adaptado ao contexto do produto real:
+Dúvida técnica? Pergunte antes de comprar, questões sobre [tópicos técnicos reais do produto, ex: vazão de gás, voltagem, pressão, capacidade, etc.] — nossa equipe responde com dados técnicos precisos. Use a caixa de perguntas logo abaixo do anúncio ou entre em contato.
+- ATENÇÃO OBRIGATÓRIA: Substitua o trecho entre a vírgula e o travessão pelas dúvidas técnicas reais pertinentes ao produto informado. NUNCA escreva literalmente a frase "questões sobre aspectos técnicos reais do produto".
+- NÃO deixe a chamada isolada em uma linha e a explicação em outro parágrafo.
+- Adapte o assunto das dúvidas ao produto real (não mencione gás, chapa ou panelas se o produto for de outra categoria).
 
-Dúvida técnica? Pergunte antes de comprar.
+SAÍDAS ADICIONAIS NO JSON:
+- detectedProductName: Nome real completo do produto identificado a partir do texto/dados de entrada.
+- seoParagraph: Parágrafo único para SEO (máximo 800 caracteres), integrando organicamente problema, solução e benefícios.
+- typeDescription: Meta descrição para Google Search (máximo 150 caracteres).
+- summary: { problem, solution, benefits, target }
+- commercial: { problem, solution, context, benefit }
+- crossSell: Array com 2 objetos { name, description } de acessórios ou itens complementares reais.
+- tips: Array de strings com 3 a 5 dicas úteis.
+- seoKeywords: Array de 6 a 10 palavras-chave relevantes.
 
-Questões sobre [principais características do produto] - nossa equipe responde com dados técnicos precisos. Use a caixa de perguntas logo abaixo do anúncio ou entre em contato.
+Retorne os dados em formato JSON estrito conforme o schema.`;
 
-REGRAS CRÍTICAS:
-- Use português do Brasil.
-- Tom comercial técnico e clareza de marketplace.
-- SEM linhas separadoras, SEM emojis, SEM tabelas, SEM markdown (negrito simples ok).
-- Remova ou substitua palavras proibidas da LISTA DE PALAVRAS PROIBIDAS.
-- Não invente dados técnicos. Se não houver informação segura, omita ou use termos neutros.
-- SAÍDA 2: Um parágrafo único (máx 800 chars) para SEO, integrando organicamente problema, solução e benefícios.
-
-Retorne os dados em formato JSON estrito.`;
+  const inputParts = [
+    inputProductName ? `Nome do Produto: ${inputProductName}` : null,
+    input?.model ? `Modelo: ${input.model}` : null,
+    input?.brand ? `Marca: ${input.brand}` : null,
+    input?.voltage ? `Voltagem/Tensão: ${input.voltage}` : null,
+    input?.differentials ? `Diferenciais informados: ${input.differentials}` : null,
+    input?.altura ? `Altura: ${input.altura} cm` : null,
+    input?.largura ? `Largura: ${input.largura} cm` : null,
+    input?.profundidade ? `Profundidade: ${input.profundidade} cm` : null,
+    input?.peso ? `Peso: ${input.peso} kg` : null,
+    input?.additionalSpecs ? `Especificações adicionais: ${input.additionalSpecs}` : null,
+    rawOriginalText ? `Texto base / Dados informados pelo usuário:\n${rawOriginalText}` : null
+  ].filter(Boolean).join("\n");
 
   const promptStr = `
-DADOS DE ENTRADA:
-- Nome do Produto: ${input?.productName || ""}
-- Modelo: ${input?.model || ""}
-- Marca: ${input?.brand || ""}
-- Voltagem/Tensão: ${input?.voltage || ""}
-- Diferenciais: ${input?.differentials || ""}
-- Altura: ${input?.altura || ""} cm
-- Largura: ${input?.largura || ""} cm
-- Profundidade: ${input?.profundidade || ""} cm
-- Peso: ${input?.peso || ""} kg
-- Especificações Adicionais: ${input?.additionalSpecs || ""}
-- Texto Original/Base: ${input?.originalText || ""}
+DADOS DO PRODUTO:
+${inputParts}
 
-LISTA DE PALAVRAS PROIBIDAS:
+LISTA DE PALAVRAS PROIBIDAS (NÃO UTILIZE):
 ${safeForbidden.join(", ")}
 
 Gere o JSON com:
-- formattedDesc: O resultado completo seguindo EXATAMENTE o formato e as regras da SAÍDA 1.
-- seoParagraph: O parágrafo único seguindo RIGOROSAMENTE o formato da SAÍDA 2.
-- typeDescription: Meta descrição para Google (max 150 chars).
-- summary: Objeto com { problem, solution, benefits, target }.
-- commercial: Objeto com { problem, solution, context, benefit }.
-- crossSell: Array com 2 objetos { name, description } de produtos complementares.
-- tips: Array de strings com 4 a 6 dicas de informações que faltam.
-- seoKeywords: 8 a 10 palavras-chave relevantes.
+- detectedProductName: Nome real do produto identificado no texto
+- formattedDesc: Texto final da descrição completa seguindo RIGOROSAMENTE todas as regras das seções A, B, C, D e E.
+- seoParagraph: Parágrafo único para SEO (máximo 800 caracteres).
+- typeDescription: Meta descrição Google (máximo 150 caracteres).
+- summary: { problem, solution, benefits, target }
+- commercial: { problem, solution, context, benefit }
+- crossSell: Array com 2 objetos { name, description } de acessórios ou itens complementares reais.
+- tips: Array de strings com 3 a 5 dicas úteis.
+- seoKeywords: Array de 6 a 10 palavras-chave relevantes.
 `;
 
   // Backend-side detection for found words and counts
   const wordCounts: { [key: string]: number } = {};
   const foundWords: string[] = [];
-  const normalizedText = (input?.originalText || "").toLowerCase();
+  const normalizedText = (rawOriginalText || "").toLowerCase();
   safeForbidden.forEach((word: string) => {
     try {
       const regex = new RegExp(`\\b${word.toLowerCase().replace(/\//g, '\\/')}\\b`, 'gi');
@@ -1193,6 +1267,7 @@ Gere o JSON com:
         responseSchema: {
           type: Type.OBJECT,
           properties: {
+            detectedProductName: { type: Type.STRING },
             formattedDesc: { type: Type.STRING },
             seoParagraph: { type: Type.STRING },
             typeDescription: { type: Type.STRING },
@@ -1236,35 +1311,61 @@ Gere o JSON com:
               items: { type: Type.STRING }
             }
           },
-          required: ["formattedDesc", "seoParagraph", "typeDescription", "summary", "commercial", "crossSell", "tips", "seoKeywords"]
+          required: ["detectedProductName", "formattedDesc", "seoParagraph", "typeDescription", "summary", "commercial", "crossSell", "tips", "seoKeywords"]
         }
       }
-    }, functionName, endpoint);
+    }, functionName, endpoint, req);
 
     let result: any = null;
     const rawText = (response?.text || "").trim();
     const cleanJson = rawText.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
     result = JSON.parse(cleanJson);
 
+    // Normalize and clean up the generated description according to formatting rules
+    const resolvedProductName = inputProductName || result?.detectedProductName || "";
+    if (result && typeof result.formattedDesc === "string") {
+      result.formattedDesc = normalizeFormattedDescription(result.formattedDesc, resolvedProductName);
+      
+      const validation = validateDescriptionCompleteness(result.formattedDesc);
+      if (!validation.isValid) {
+        console.warn("[rewriteDescription] Validação de integridade:", validation.reason);
+      }
+    }
+
     return res.json({
       ...result,
       foundWords,
-      wordCounts
+      wordCounts,
+      generatorVersion: "2.3.0-compact-prod"
     });
   } catch (err: any) {
-    console.warn("[rewriteDescription] Fallback activated:", err?.message || err);
-    logTechnicalDetails(functionName, endpoint, model, err?.status || 500, err);
-    
-    const fallbackResult = generateFallbackRewrite(input);
-    return res.json({
-      ...fallbackResult,
+    console.error("[rewriteDescription] Falha na geração com Gemini:", err?.message || err);
+    const rawStatus = Number(err?.status ?? err?.code ?? 500);
+    const status = Number.isFinite(rawStatus) && rawStatus >= 400 && rawStatus < 600 ? rawStatus : 500;
+    logTechnicalDetails(functionName, endpoint, model, status, err);
+
+    let userMessage = "Não foi possível gerar a descrição completa com o Gemini no momento.";
+    const errMsg = String(err?.message || "").toLowerCase();
+    if (status === 429 || errMsg.includes("quota") || errMsg.includes("resource_exhausted") || errMsg.includes("rate-limit")) {
+      userMessage = "Limite de cota da API Gemini atingido temporariamente. Aguarde alguns instantes e tente novamente.";
+    } else if (status === 401 || status === 403 || errMsg.includes("api key") || errMsg.includes("permission_denied")) {
+      userMessage = "Chave de API do Gemini não configurada ou sem permissão. Verifique a variável GEMINI_API_KEY no painel da Vercel.";
+    } else if (status === 503 || errMsg.includes("overloaded") || errMsg.includes("demand")) {
+      userMessage = "Os servidores do Gemini estão sobrecarregados no momento. Tente novamente em alguns segundos.";
+    } else if (err?.message) {
+      userMessage = `Falha ao processar descrição: ${err.message}`;
+    }
+
+    return res.status(status).json({
+      error: "generation_failed",
+      message: userMessage,
       foundWords,
       wordCounts
     });
   }
 });
 
-app.post("/api/gemini/generateSimpleSEO", async (req, res) => {
+app.post(["/api/gemini/generateSimpleSEO", "/gemini/generateSimpleSEO"], async (req, res) => {
   const { input } = req.body;
   const model = "gemini-3-flash-preview";
   const functionName = "generateSimpleSEO";
@@ -1362,7 +1463,7 @@ Gere os dados estritamente em formato JSON seguindo o schema da instrução do s
   }
 });
 
-app.post("/api/gemini/generateSEOTitle", async (req, res) => {
+app.post(["/api/gemini/generateSEOTitle", "/gemini/generateSEOTitle"], async (req, res) => {
   const { input } = req.body;
   const model = "gemini-3-flash-preview";
   const functionName = "generateSEOTitle";
@@ -1504,4 +1605,9 @@ async function startServer() {
   });
 }
 
-startServer();
+export { app };
+export default app;
+
+if (!process.env.VERCEL && process.env.NODE_ENV !== "test") {
+  startServer();
+}

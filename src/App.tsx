@@ -254,7 +254,14 @@ export default function App() {
   }, [imageResult, clearImageResult, startGeneration]);
 
   const handleRewrite = React.useCallback(async () => {
-    if (!originalDesc.trim()) return;
+    if (!originalDesc.trim()) {
+      alert("Por favor, preencha o campo de descrição ou dados do produto antes de clicar em Melhorar descrição.");
+      return;
+    }
+    if (originalDesc.trim().length < 15 && !seoFormData.name) {
+      alert("O texto informado é muito curto para gerar uma descrição completa confiável. Por favor, forneça mais informações do produto (nome, características ou dados técnicos).");
+      return;
+    }
     if (/\bfrete\b/i.test(originalDesc)) {
       alert("A palavra 'Frete' é proibida na Via Varejo. Geração bloqueada até que o termo seja removido.");
       return;
@@ -277,7 +284,7 @@ export default function App() {
       });
       setRewriteResult(res);
     } catch (err: any) {
-      console.error(err);
+      console.error("[handleRewrite] Erro:", err);
       const isQuota = err?.message?.includes("429") || 
                      err?.message?.includes("quota") || 
                      err?.message?.includes("QUOTA_EXCEEDED") ||
@@ -289,16 +296,16 @@ export default function App() {
         const retryTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         setQuotaError({ exceeded: true, retryTime });
       } else if (err?.message?.includes("503") || err?.message?.includes("demand") || err?.status === 503) {
-        alert("O servidor está muito ocupado no momento (alta demanda). Por favor, tente novamente em alguns instantes.");
-      } else if (err?.message?.includes("API key expired") || err?.message?.includes("INVALID_ARGUMENT")) {
-        alert("Chave de API expirada ou inválida. Por favor, verifique as configurações da AI Studio.");
+        alert("O servidor está temporariamente ocupado no momento (alta demanda). Por favor, aguarde alguns segundos e tente novamente.");
+      } else if (err?.message?.includes("API key") || err?.message?.includes("missing_api_key") || err?.message?.includes("INVALID_ARGUMENT")) {
+        alert(err.message || "Chave de API do Gemini não configurada ou inválida. Verifique a variável GEMINI_API_KEY no painel da Vercel.");
       } else {
-        alert("Ocorreu um erro ao reescrever a descrição. Tente novamente.");
+        alert(err?.message || "Não foi possível gerar a descrição completa no momento. Suas informações foram mantidas para tentar novamente.");
       }
     } finally {
       setRewriteLoading(false);
     }
-  }, [originalDesc, foundWords.length, setQuotaError]);
+  }, [originalDesc, seoFormData, formatarMedidas, setQuotaError]);
 
   const handleSEOGenerate = React.useCallback(async (e: FormEvent) => {
     e.preventDefault();
