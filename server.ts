@@ -1,6 +1,5 @@
 import express from "express";
 import path from "path";
-import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 import dns from "dns";
@@ -15,6 +14,13 @@ const app = express();
 const PORT = 3000;
 
 // Setup JSON body parsing with high limit for base64 images (50mb)
+// Safeguard for Vercel Serverless environment where req.body might already be parsed
+app.use((req, res, next) => {
+  if (req.body && typeof req.body === "object") {
+    (req as any)._body = true;
+  }
+  next();
+});
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
@@ -27,6 +33,7 @@ export function getGeminiApiKey(req?: express.Request): string {
     process.env.GOOGLE_GENAI_API_KEY ||
     process.env.GOOGLE_API_KEY ||
     process.env.VITE_GEMINI_API_KEY ||
+    process.env.GEMINI_KEY ||
     ""
   ).trim();
 }
@@ -49,8 +56,6 @@ app.use((req, res, next) => {
     if (req.query && req.query.path) {
       const p = Array.isArray(req.query.path) ? req.query.path.join("/") : req.query.path;
       req.url = `/api/${p}`;
-    } else if (req.headers["x-matched-path"] && String(req.headers["x-matched-path"]).startsWith("/api/")) {
-      req.url = String(req.headers["x-matched-path"]);
     }
   }
   next();
@@ -105,8 +110,8 @@ async function backendCallGeminiWithRetry(params: {
     "gemini-3.8-flash",
     "gemini-3.1-flash-lite",
     "gemini-flash-latest",
-    "gemini-3.6-flash",
-    "gemini-3-flash-preview"
+    "gemini-3.1-pro-preview",
+    "gemini-2.5-flash"
   ].filter(Boolean);
   const uniqueModels = Array.from(new Set(candidateModels));
   
@@ -155,35 +160,30 @@ async function backendCallGeminiWithRetry(params: {
           break;
         }
 
-        // Hard daily quota or limit 0 is NOT resolvable by waiting a few seconds!
-        const isHardQuotaExceeded =
+        // Hard daily quota, rate limit, or resource exhausted: immediately switch to alternate model
+        const isQuotaExhausted =
+          status === 429 ||
+          errorMessage.includes("429") ||
           errorMessage.includes("limit: 0") ||
-          (errorMessage.includes("quota") && (
-            errorMessage.includes("perday") ||
-            errorMessage.includes("per day") ||
-            errorMessage.includes("daily") ||
-            errorMessage.includes("day")
-          ));
+          errorMessage.includes("resource_exhausted") ||
+          errorMessage.includes("quota exceeded") ||
+          errorMessage.includes("quota");
 
-        if (isHardQuotaExceeded) {
-          console.log(`[Gemini Engine] Model ${currentModel} reached hard/daily quota limit. Immediately switching to alternate model.`);
+        if (isQuotaExhausted) {
+          console.log(`[Gemini Engine] Model ${currentModel} reached quota/limit. Immediately switching to alternate model.`);
           break;
         }
 
-        // Temporary demand spikes (503) or rate limits (429)
-        const isTemporaryDemandOrRateLimit =
+        // Temporary demand spikes (503)
+        const isTemporaryDemand =
           status === 503 ||
-          status === 429 ||
           errorMessage.includes("503") ||
-          errorMessage.includes("429") ||
           errorMessage.includes("demand") ||
           errorMessage.includes("unavailable") ||
-          errorMessage.includes("resource_exhausted") ||
-          errorMessage.includes("quota") ||
           errorMessage.includes("overload") ||
           errorMessage.includes("busy");
 
-        if (isTemporaryDemandOrRateLimit) {
+        if (isTemporaryDemand) {
           if (attempt < maxRetriesPerModel) {
             const delay = 1000 + Math.floor(Math.random() * 500);
             console.log(`[Gemini Engine] Model ${currentModel} high demand/busy (status ${status}). Waiting ${delay}ms before retry (${attempt + 1}/${maxRetriesPerModel})...`);
@@ -207,6 +207,28 @@ async function backendCallGeminiWithRetry(params: {
   }
   
   throw lastError || new Error("Failed to generate content from Gemini after several attempts.");
+}
+
+function safeParseJsonFromAi(rawText: string): any {
+  if (!rawText) return null;
+  const trimmed = rawText.trim();
+  try {
+    return JSON.parse(trimmed);
+  } catch (_) {}
+
+  const unquoted = trimmed.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+  try {
+    return JSON.parse(unquoted);
+  } catch (_) {}
+
+  const firstBrace = trimmed.indexOf("{");
+  const lastBrace = trimmed.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    try {
+      return JSON.parse(trimmed.slice(firstBrace, lastBrace + 1));
+    } catch (_) {}
+  }
+  return null;
 }
 
 async function backendCallGeminiImageWithRetry(
@@ -347,8 +369,10 @@ app.get(["/api/gemini/image-health", "/gemini/image-health"], (_req, res) => {
 });
 
 // API Endpoints
-app.post(["/api/gemini/validateProductFidelity", "/gemini/validateProductFidelity"], async (req, res) => {
-  const { data } = req.body;
+export async function handleValidateProductFidelity(req: express.Request, res: express.Response) {
+  let body = req.body || {};
+  if (typeof body === "string") { try { body = JSON.parse(body); } catch (_) {} }
+  const { data } = body;
   const model = "gemini-3-flash-preview";
   const functionName = "validateProductFidelity";
   const endpoint = "/api/gemini/validateProductFidelity";
@@ -412,7 +436,14 @@ Analise a imagem e os dados acima. Se houver discrepância grave, informe.`;
       message: err?.message || "Erro na validação de fidelidade."
     });
   }
-});
+}
+
+app.post([
+  "/api/gemini/validateProductFidelity",
+  "/gemini/validateProductFidelity",
+  "/api/validateProductFidelity",
+  "/validateProductFidelity"
+], handleValidateProductFidelity);
 
 
 
@@ -455,12 +486,14 @@ async function identifyProductFromImage(data: { image: string; mimeType: string;
   return "";
 }
 
-app.post(["/api/gemini/generateProductContent", "/gemini/generateProductContent"], async (req, res) => {
+export async function handleGenerateProductContent(req: express.Request, res: express.Response) {
   const functionName = "generateProductContent";
   const endpoint = "/api/gemini/generateProductContent";
 
   try {
-    const { data } = req.body;
+    let body = req.body || {};
+    if (typeof body === "string") { try { body = JSON.parse(body); } catch (_) {} }
+    const { data } = body;
     if (!data) {
       return res.status(400).json({
         error: "invalid_input",
@@ -1001,7 +1034,14 @@ Diretrizes e Regras de Design e Composição Visual:
       message: outerErr?.message || "Ocorreu um erro interno imprevisto no processador de imagens do e-commerce."
     });
   }
-});
+}
+
+app.post([
+  "/api/gemini/generateProductContent",
+  "/gemini/generateProductContent",
+  "/api/generateProductContent",
+  "/generateProductContent"
+], handleGenerateProductContent);
 
 export function normalizeFormattedDescription(raw: string, productName?: string): string {
   if (!raw || typeof raw !== "string") return "";
@@ -1020,14 +1060,13 @@ export function normalizeFormattedDescription(raw: string, productName?: string)
 
   // 4. Merge old double-headers into the single new standard title:
   text = text.replace(/Antes de comprar,\s*verifique:?\s*/gi, "");
-  text = text.replace(/(?:Antes de comprar,\s*)?Confirme se este é o ([^:\n]+) certo para você:?\s*/gi, "Antes de comprar, confirme se este é o $1 certo para você:\n");
-  text = text.replace(/(?:Antes de comprar,\s*)?Confirme se esta é a ([^:\n]+) certa para você:?\s*/gi, "Antes de comprar, confirme se esta é a $1 certa para você:\n");
+  text = text.replace(/(?:Antes de comprar,\s*)?Confirme se este é o ([^:\n]+) certo para você:?\s*/gi, "\n\nAntes de comprar, confirme se este é o $1 certo para você:\n");
+  text = text.replace(/(?:Antes de comprar,\s*)?Confirme se esta é a ([^:\n]+) certa para você:?\s*/gi, "\n\nAntes de comprar, confirme se esta é a $1 certa para você:\n");
   text = text.replace(/(Antes de comprar,\s*)+confirme se/gi, "Antes de comprar, confirme se");
+  text = text.replace(/\n*(Antes de comprar,\s*confirme se (?:este|esta) é [^\n]+)\n*/gi, "\n\n$1\n");
 
   // 5. In Section B (Questions):
   // Remove parentheses around question explanations:
-  // e.g., "Sua instalação é para Gás GLP de baixa pressão? (Configuração padrão de fábrica)"
-  // -> "Sua instalação é para Gás GLP de baixa pressão? Configuração padrão de fábrica"
   text = text.replace(/\?\s*\(([^)\n]+)\)/g, "? $1");
   text = text.replace(/\?\s*[-–—:]\s+/g, "? ");
 
@@ -1060,6 +1099,24 @@ export function normalizeFormattedDescription(raw: string, productName?: string)
   // Ensure "Dúvida técnica? Pergunte antes de comprar" is unified with the explanation paragraph:
   text = text.replace(/\n*(Dúvida técnica\?\s*Pergunte antes de comprar)/gi, "\n\n$1");
   text = text.replace(/Dúvida técnica\?\s*Pergunte antes de comprar\.?\s*\n+\s*([^\n]+)/i, "Dúvida técnica? Pergunte antes de comprar, $1");
+
+  // Format the closing ending according to user request:
+  // " — nossa equipe responde com dados técnicos precisos. Use a caixa de perguntas logo abaixo do anúncio ou entre em contato."
+  // troque para "use a caixa de perguntas logo abaixo do anúncio. Nossa equipe responde com dados técnicos precisos."
+  text = text.replace(
+    /[-–—\s]*nossa equipe responde com dados técnicos precisos\.?\s*use a caixa de perguntas logo abaixo do anúncio(?:\s+ou entre em contato)?\.?/gi,
+    " — use a caixa de perguntas logo abaixo do anúncio. Nossa equipe responde com dados técnicos precisos."
+  );
+  text = text.replace(
+    /[-–—\s]*use a caixa de perguntas logo abaixo do anúncio\s+ou entre em contato\.?\s*(?:nossa equipe responde com dados técnicos precisos\.?)?/gi,
+    " — use a caixa de perguntas logo abaixo do anúncio. Nossa equipe responde com dados técnicos precisos."
+  );
+  text = text.replace(
+    /[-–—\s]*use a caixa de perguntas logo abaixo do anúncio(?:\s+ou entre em contato)?\.?(?:\s*nossa equipe responde com dados técnicos precisos\.?)?/gi,
+    " — use a caixa de perguntas logo abaixo do anúncio. Nossa equipe responde com dados técnicos precisos."
+  );
+  text = text.replace(/\s*—\s*—\s*/g, " — ");
+  text = text.replace(/,\s*—\s*/g, " — ");
 
   // 8. Replace placeholders if product name was provided or detected
   if (productName && productName.trim()) {
@@ -1101,8 +1158,9 @@ export function validateDescriptionCompleteness(text: string): { isValid: boolea
   return { isValid: true };
 }
 
-app.post(["/api/gemini/rewriteDescription", "/gemini/rewriteDescription"], async (req, res) => {
-  const body = req.body || {};
+export async function handleRewriteDescription(req: express.Request, res: express.Response) {
+  let body = req.body || {};
+  if (typeof body === "string") { try { body = JSON.parse(body); } catch (_) {} }
   const input = body.input || body;
   const model = "gemini-3.8-flash";
   const functionName = "rewriteDescription";
@@ -1186,8 +1244,9 @@ Nome do campo: Valor
 
 E) ENCERRAMENTO:
 - Um único parágrafo corrido unindo a chamada de dúvida técnica com a orientação de atendimento, adaptado ao contexto do produto real:
-Dúvida técnica? Pergunte antes de comprar, questões sobre [tópicos técnicos reais do produto, ex: vazão de gás, voltagem, pressão, capacidade, etc.] — nossa equipe responde com dados técnicos precisos. Use a caixa de perguntas logo abaixo do anúncio ou entre em contato.
-- ATENÇÃO OBRIGATÓRIA: Substitua o trecho entre a vírgula e o travessão pelas dúvidas técnicas reais pertinentes ao produto informado. NUNCA escreva literalmente a frase "questões sobre aspectos técnicos reais do produto".
+Dúvida técnica? Pergunte antes de comprar, questões sobre [tópicos técnicos reais do produto, ex: vazão de gás, voltagem, pressão, capacidade, etc.] — use a caixa de perguntas logo abaixo do anúncio. Nossa equipe responde com dados técnicos precisos.
+- ATENÇÃO OBRIGATÓRIA: O encerramento DEVE terminar exatamente com o padrão: "— use a caixa de perguntas logo abaixo do anúncio. Nossa equipe responde com dados técnicos precisos."
+- Substitua o trecho entre a vírgula e o travessão pelas dúvidas técnicas reais pertinentes ao produto informado. NUNCA escreva literalmente a frase "questões sobre aspectos técnicos reais do produto".
 - NÃO deixe a chamada isolada em uma linha e a explicação em outro parágrafo.
 - Adapte o assunto das dúvidas ao produto real (não mencione gás, chapa ou panelas se o produto for de outra categoria).
 
@@ -1318,8 +1377,10 @@ Gere o JSON com:
 
     let result: any = null;
     const rawText = (response?.text || "").trim();
-    const cleanJson = rawText.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
-    result = JSON.parse(cleanJson);
+    result = safeParseJsonFromAi(rawText);
+    if (!result || typeof result !== "object" || !result.formattedDesc) {
+      throw new Error("O modelo não retornou a estrutura completa esperada da descrição.");
+    }
 
     // Normalize and clean up the generated description according to formatting rules
     const resolvedProductName = inputProductName || result?.detectedProductName || "";
@@ -1350,7 +1411,7 @@ Gere o JSON com:
       userMessage = "Limite de cota da API Gemini atingido temporariamente. Aguarde alguns instantes e tente novamente.";
     } else if (status === 401 || status === 403 || errMsg.includes("api key") || errMsg.includes("permission_denied")) {
       userMessage = "Chave de API do Gemini não configurada ou sem permissão. Verifique a variável GEMINI_API_KEY no painel da Vercel.";
-    } else if (status === 503 || errMsg.includes("overloaded") || errMsg.includes("demand")) {
+    } else if (status === 503 || errMsg.includes("overloaded") || errMsg.includes("demand") || errMsg.includes("unavailable")) {
       userMessage = "Os servidores do Gemini estão sobrecarregados no momento. Tente novamente em alguns segundos.";
     } else if (err?.message) {
       userMessage = `Falha ao processar descrição: ${err.message}`;
@@ -1363,10 +1424,19 @@ Gere o JSON com:
       wordCounts
     });
   }
-});
+}
 
-app.post(["/api/gemini/generateSimpleSEO", "/gemini/generateSimpleSEO"], async (req, res) => {
-  const { input } = req.body;
+app.post([
+  "/api/gemini/rewriteDescription",
+  "/gemini/rewriteDescription",
+  "/api/rewriteDescription",
+  "/rewriteDescription"
+], handleRewriteDescription);
+
+export async function handleGenerateSimpleSEO(req: express.Request, res: express.Response) {
+  let body = req.body || {};
+  if (typeof body === "string") { try { body = JSON.parse(body); } catch (_) {} }
+  const { input } = body;
   const model = "gemini-3-flash-preview";
   const functionName = "generateSimpleSEO";
   const endpoint = "/api/gemini/generateSimpleSEO";
@@ -1461,10 +1531,19 @@ Gere os dados estritamente em formato JSON seguindo o schema da instrução do s
       wordCounts: {}
     });
   }
-});
+}
 
-app.post(["/api/gemini/generateSEOTitle", "/gemini/generateSEOTitle"], async (req, res) => {
-  const { input } = req.body;
+app.post([
+  "/api/gemini/generateSimpleSEO",
+  "/gemini/generateSimpleSEO",
+  "/api/generateSimpleSEO",
+  "/generateSimpleSEO"
+], handleGenerateSimpleSEO);
+
+export async function handleGenerateSEOTitle(req: express.Request, res: express.Response) {
+  let body = req.body || {};
+  if (typeof body === "string") { try { body = JSON.parse(body); } catch (_) {} }
+  const { input } = body;
   const model = "gemini-3-flash-preview";
   const functionName = "generateSEOTitle";
   const endpoint = "/api/gemini/generateSEOTitle";
@@ -1580,12 +1659,20 @@ FORMATO DE RESPOSTA (JSON):
       intentKeywords: ["comprar", "preço", "melhor", "industrial", "profissional"]
     });
   }
-});
+}
+
+app.post([
+  "/api/gemini/generateSEOTitle",
+  "/gemini/generateSEOTitle",
+  "/api/generateSEOTitle",
+  "/generateSEOTitle"
+], handleGenerateSEOTitle);
 
 // Setup Vite Dev Server / Static Production Server
 async function startServer() {
   if (process.env.NODE_ENV !== "production") {
     console.log("[Server] Running in DEV mode, initializing Vite middleware...");
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",

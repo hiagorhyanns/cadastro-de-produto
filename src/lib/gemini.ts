@@ -218,32 +218,56 @@ export async function rewriteDescription(input: RewriteInput): Promise<RewriteRe
     }
   }
 
-  const res = await fetch("/api/gemini/rewriteDescription", {
-    method: "POST",
-    headers: { 
-      "Content-Type": "application/json",
-      ...apiKeyHeader
-    },
-    body: JSON.stringify({ input })
-  });
+  let lastError: any = null;
+  const maxAttempts = 2;
 
-  if (!res.ok) {
-    let message = `Erro no servidor (${res.status})`;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      const errData = await res.json();
-      if (errData?.message) {
-        message = errData.message;
+      const res = await fetch("/api/gemini/rewriteDescription", {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          ...apiKeyHeader
+        },
+        body: JSON.stringify({ input })
+      });
+
+      if (!res.ok) {
+        let message = `Erro no servidor (${res.status})`;
+        try {
+          const errData = await res.json();
+          if (errData?.message) {
+            message = errData.message;
+          }
+        } catch (_) {}
+
+        if ((res.status === 503 || res.status === 504 || res.status === 502) && attempt < maxAttempts) {
+          await new Promise(r => setTimeout(r, 1500));
+          continue;
+        }
+
+        throw new Error(message);
       }
-    } catch (_) {}
-    throw new Error(message);
+
+      const data = await safeParseJSONResponse(res);
+      if (!data || !data.formattedDesc || typeof data.formattedDesc !== "string" || data.formattedDesc.trim().length < 40) {
+        throw new Error("A descrição completa gerada pela IA veio vazia ou incompleta. Suas informações foram mantidas para tentar novamente.");
+      }
+
+      return sanitizeRewriteResult(data, input);
+    } catch (err: any) {
+      lastError = err;
+      const lowerMsg = String(err?.message || "").toLowerCase();
+      const isTransient = lowerMsg.includes("503") || lowerMsg.includes("sobrecarregado") || lowerMsg.includes("alta demanda") || lowerMsg.includes("failed to fetch");
+      if (isTransient && attempt < maxAttempts) {
+        await new Promise(r => setTimeout(r, 1500));
+        continue;
+      }
+      throw err;
+    }
   }
 
-  const data = await safeParseJSONResponse(res);
-  if (!data || !data.formattedDesc || typeof data.formattedDesc !== "string" || data.formattedDesc.trim().length < 40) {
-    throw new Error("A descrição completa gerada pela IA veio vazia ou incompleta. Suas informações foram mantidas para tentar novamente.");
-  }
-
-  return sanitizeRewriteResult(data, input);
+  throw lastError || new Error("Não foi possível gerar a descrição completa no momento.");
 }
 
 export async function generateSEOTitle(input: SEOInput): Promise<SEOResult> {
