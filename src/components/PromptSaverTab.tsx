@@ -16,7 +16,8 @@ import {
   Sparkles,
   Image,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Bot
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -461,6 +462,21 @@ export function PromptSaverTab() {
       )}
 
       <div className="space-y-4">
+        {/* Header com botão para cadastrar novo prompt */}
+        <div className="flex items-center justify-between gap-4 pb-1">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            {filteredPrompts.length} {filteredPrompts.length === 1 ? "prompt cadastrado" : "prompts cadastrados"}
+          </span>
+          <Button
+            onClick={handleAddPrompt}
+            style={{ borderRadius: "12px" }}
+            className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl px-4 py-2 text-xs font-bold shadow-none flex items-center gap-1.5 transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            Cadastrar Novo Prompt
+          </Button>
+        </div>
+
         {loading ? (
           <div className="h-60 flex items-center justify-center">
             <div className="flex flex-col items-center gap-2">
@@ -499,7 +515,7 @@ export function PromptSaverTab() {
                           <h3 className="font-bold text-slate-900 text-base">{prompt.name}</h3>
                         </div>
 
-                        {/* Botões Copiar e Editar */}
+                        {/* Botões Copiar, Gerar chatGPT e Editar */}
                         <div className="flex items-center gap-1.5 shrink-0 ml-auto">
                           <Button 
                             variant="ghost" 
@@ -522,6 +538,19 @@ export function PromptSaverTab() {
                                 Copiar
                               </>
                             )}
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => {
+                              const url = `https://chatgpt.com/?q=${encodeURIComponent(prompt.content || "")}`;
+                              window.open(url, "_blank", "noopener,noreferrer");
+                            }}
+                            className="h-8 px-2.5 text-xs font-bold rounded-lg border-0 shadow-none bg-transparent text-slate-600 hover:bg-slate-100 hover:text-emerald-600 transition-all flex items-center"
+                            title="Gerar no ChatGPT"
+                          >
+                            <Bot className="w-3.5 h-3.5 mr-1.5 text-emerald-600" />
+                            Gerar chatGPT
                           </Button>
                           <Button 
                             variant="ghost" 

@@ -346,8 +346,8 @@ export const DescriptionTab = ({
                 {/* Main Input Area */}
                 <div className="space-y-4">
                   <Textarea 
-                    className="h-[300px] min-h-[300px] w-full bg-white border border-slate-200 focus:border-slate-300 focus:ring-2 focus:ring-slate-100 outline-none transition-all p-4 text-sm leading-relaxed overflow-y-auto resize-y placeholder:text-slate-400 shadow-none rounded-[15px]"
-                    style={{ borderRadius: "15px" }}
+                    className="h-[300px] min-h-[300px] w-full bg-white border border-slate-200 focus:border-slate-300 focus:ring-0 focus-visible:ring-0 focus:outline-none focus-visible:outline-none focus:shadow-none shadow-none outline-none transition-all p-4 text-sm leading-relaxed overflow-y-auto resize-y placeholder:text-slate-400 rounded-[15px]"
+                    style={{ borderRadius: "15px", boxShadow: "none" }}
                     value={safeOriginalDesc}
                     onChange={(e) => setOriginalDesc(e.target.value)}
                     placeholder="Enriqueça ou reescreva o texto do produto"
@@ -446,8 +446,8 @@ export const DescriptionTab = ({
                 className="space-y-2.5 pb-2 animate-in fade-in duration-300"
               >
                 {/* 1. TEXTO PRINCIPAL (SAÍDA 1 - Completo) */}
-                <Card style={{ borderRadius: "15px" }} className="border border-slate-200 shadow-none rounded-[15px] bg-white overflow-hidden">
-                  <CardHeader className="p-3.5 sm:px-4 sm:py-2.5 bg-white">
+                <Card style={{ borderRadius: "15px" }} className="border-0 shadow-none rounded-[15px] bg-transparent overflow-hidden">
+                  <CardHeader className="p-2 sm:px-2 sm:py-2 bg-transparent">
                     <div className="flex items-center justify-between gap-3 flex-wrap">
                       <div>
                         <CardTitle className="text-lg sm:text-xl font-black tracking-tight">Descrição completa</CardTitle>
@@ -496,63 +496,18 @@ export const DescriptionTab = ({
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-3.5 sm:px-4 sm:pb-3.5 pt-0">
+                  <CardContent className="p-0 sm:px-0 sm:pb-1 pt-0">
                     <div 
-                      style={{ borderRadius: "15px", fontFamily: "'Roboto', sans-serif" }} 
-                      className="text-gray-700 leading-relaxed text-sm whitespace-pre-wrap font-normal border-l-4 border-slate-300 pl-4 pr-4 bg-gray-50/50 py-3 rounded-[15px] border border-slate-200 overflow-x-auto min-h-[140px] shadow-none"
+                      style={{ borderRadius: "15px", fontFamily: "'Roboto', sans-serif", backgroundColor: "#fff" }} 
+                      className="text-gray-700 leading-relaxed text-sm whitespace-pre-wrap font-normal border-l-4 border-slate-300 pl-4 pr-4 bg-white py-3.5 rounded-[15px] border border-slate-200 overflow-x-auto min-h-[140px] shadow-none"
                     >
                       {rewriteResult.formattedDesc}
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* Secondary Info (Keywords and Restricted Terms) - Posicionado embaixo do texto descrição gerado */}
-                {rewriteResult.seoKeywords && rewriteResult.seoKeywords.length > 0 && (
-                  <Card style={{ borderRadius: "15px" }} className="w-full border border-slate-200 shadow-none rounded-[15px] bg-white overflow-hidden">
-                    <CardHeader className="p-3 pb-1">
-                      <CardTitle className="text-xs font-black uppercase tracking-widest text-orange-600">Palavras-chave SEO</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-3 pt-1">
-                      <div className="flex flex-wrap gap-1.5">
-                        {rewriteResult.seoKeywords.map((tag, i) => (
-                          <span 
-                            key={i} 
-                            className="bg-transparent text-slate-700 border-0 text-[11px] px-2 py-0.5 font-bold uppercase tracking-wide"
-                          >
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {safeFoundWords.length > 0 && (
-                  <Card style={{ borderRadius: "15px" }} className="w-full border border-slate-200 shadow-none rounded-[15px] bg-white overflow-hidden">
-                    <CardHeader className="p-3 pb-1">
-                      <CardTitle className="text-xs font-black uppercase tracking-widest text-red-600">Termos Restritos Encontrados</CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-3 pt-1">
-                      <ScrollArea className="h-[90px] pr-4">
-                        <div className="flex flex-wrap gap-1.5">
-                          {safeFoundWords.map((word, i) => (
-                            <Badge 
-                              key={i} 
-                              variant="destructive"
-                              style={{ borderRadius: "15px" }}
-                              className="text-[10px] py-1 px-2.5 rounded-[15px] transition-all duration-300 font-bold uppercase tracking-wider bg-red-600 text-white border border-red-700 shadow-none hover:bg-red-700"
-                            >
-                              {word} ({safeWordCounts[word] || 1}x)
-                            </Badge>
-                          ))}
-                        </div>
-                      </ScrollArea>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Meta Descrição Google (Type Description) */}
-                <Card style={{ borderRadius: "15px" }} className="border border-slate-200 shadow-none rounded-[15px] bg-white overflow-hidden">
+                {/* Meta Descrição Google (Type Description) - Posicionado embaixo da descrição completa gerada */}
+                <Card style={{ borderRadius: "15px" }} className="w-full border border-slate-200 shadow-none rounded-[15px] bg-white overflow-hidden">
                   <CardHeader className="p-3 sm:px-4 sm:py-2.5 bg-white">
                     <div className="flex items-center justify-between">
                       <div className="space-y-0.5">
@@ -596,6 +551,51 @@ export const DescriptionTab = ({
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Card Palavras-chave SEO - Largura total do conteúdo da página, sem hashtag # */}
+                {rewriteResult.seoKeywords && rewriteResult.seoKeywords.length > 0 && (
+                  <Card style={{ borderRadius: "15px" }} className="w-full border border-slate-200 shadow-none rounded-[15px] bg-white overflow-hidden">
+                    <CardHeader className="p-3 pb-1">
+                      <CardTitle className="text-xs font-black uppercase tracking-widest text-orange-600">Palavras-chave SEO</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-3 pt-1">
+                      <div className="flex flex-wrap gap-1.5">
+                        {rewriteResult.seoKeywords.map((tag, i) => (
+                          <span 
+                            key={i} 
+                            className="bg-transparent text-slate-700 border-0 text-[11px] px-2 py-0.5 font-bold uppercase tracking-wide"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {safeFoundWords.length > 0 && (
+                  <Card style={{ borderRadius: "15px" }} className="w-full border border-slate-200 shadow-none rounded-[15px] bg-white overflow-hidden">
+                    <CardHeader className="p-3 pb-1">
+                      <CardTitle className="text-xs font-black uppercase tracking-widest text-red-600">Termos Restritos Encontrados</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-3 pt-1">
+                      <ScrollArea className="h-[90px] pr-4">
+                        <div className="flex flex-wrap gap-1.5">
+                          {safeFoundWords.map((word, i) => (
+                            <Badge 
+                              key={i} 
+                              variant="destructive"
+                              style={{ borderRadius: "15px" }}
+                              className="text-[10px] py-1 px-2.5 rounded-[15px] transition-all duration-300 font-bold uppercase tracking-wider bg-red-600 text-white border border-red-700 shadow-none hover:bg-red-700"
+                            >
+                              {word} ({safeWordCounts[word] || 1}x)
+                            </Badge>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    </CardContent>
+                  </Card>
+                )}
 
                 {/* Dicas de Conteúdo (Insights) */}
                 {Array.isArray(rewriteResult.tips) && rewriteResult.tips.length > 0 && (
@@ -731,8 +731,8 @@ export const DescriptionTab = ({
                 {/* Input Form for Rapido */}
                 <div className="space-y-4">
                   <Textarea 
-                    className="h-[180px] min-h-[180px] w-full bg-white border border-slate-200 focus:border-slate-300 focus:ring-2 focus:ring-slate-100 outline-none transition-all p-4 text-sm leading-relaxed overflow-y-auto resize-y placeholder:text-slate-400 shadow-none rounded-[15px]"
-                    style={{ borderRadius: "15px" }}
+                    className="h-[180px] min-h-[180px] w-full bg-white border border-slate-200 focus:border-slate-300 focus:ring-0 focus-visible:ring-0 focus:outline-none focus-visible:outline-none focus:shadow-none shadow-none outline-none transition-all p-4 text-sm leading-relaxed overflow-y-auto resize-y placeholder:text-slate-400 rounded-[15px]"
+                    style={{ borderRadius: "15px", boxShadow: "none" }}
                     value={rapidInput}
                     onChange={(e) => setRapidInput(e.target.value)}
                     placeholder="Enriqueça ou reescreva o texto do produto"
